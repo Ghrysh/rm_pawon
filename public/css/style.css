@@ -9,7 +9,7 @@
 
 body {
     background-color: #26160F;
-    background-image: url('/assets/bg_mobile.png');
+    background-image: url('../assets/bg_mobile.png');
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
@@ -552,7 +552,7 @@ body {
     width: 100%; max-width: 480px;
     height: 100vh;
     background-color: #26160F;
-    background-image: url('/assets/bg_mobile.png');
+    background-image: url('../assets/bg_mobile.png');
     background-size: cover;
     background-position: center;
     z-index: 100;

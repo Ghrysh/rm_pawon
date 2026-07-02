@@ -14,7 +14,7 @@ body.admin-body {
 /* Login Page Styles */
 body.login-body {
     background-color: #26160F;
-    background-image: url('/assets/bg_dekstop.png');
+    background-image: url('../assets/bg_dekstop.png');
     background-size: 100vw 100vh; /* changed from cover to stretch precisely */
     background-position: center;
     background-attachment: fixed;
