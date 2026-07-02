@@ -169,12 +169,12 @@
 
     function editKategori(id, name) {
         document.getElementById('editKategoriName').value = name;
-        document.getElementById('formEditKategori').action = '/admin/kategori/' + id;
+        document.getElementById('formEditKategori').action = '{{ url("admin/kategori") }}/' + id;
         showView('editKategoriView');
     }
 
     function confirmDelete(id) {
-        document.getElementById('formDeleteKategori').action = '/admin/kategori/' + id;
+        document.getElementById('formDeleteKategori').action = '{{ url("admin/kategori") }}/' + id;
         openModal('confirmDeleteModal');
     }
 </script>

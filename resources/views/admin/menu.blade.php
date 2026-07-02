@@ -108,7 +108,7 @@
     }
 
     function confirmDelete(id) {
-        document.getElementById('formDeleteMenu').action = '/admin/menu/' + id;
+        document.getElementById('formDeleteMenu').action = '{{ url("admin/menu") }}/' + id;
         openModal('confirmDeleteModal');
     }
 </script>
