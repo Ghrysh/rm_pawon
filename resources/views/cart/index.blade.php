@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keranjang - Rumah Makan Pawon Kang Bima</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+</head>
+<body>
+    <div class="mobile-container menu-container">
+        
+        <div class="header" style="position: sticky; top: 0; z-index: 10;">
+            <a href="{{ route('menu.index') }}" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </a>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Cari Pesanan">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+        </div>
+
+        <div class="menu-list" style="padding-top: 1rem;">
+            @php $totalPrice = 0; @endphp
+            @forelse($cart as $id => $item)
+            @php $totalPrice += ($item['qty'] * $item['price']); @endphp
+            <div class="menu-card">
+                <div class="menu-image">
+                    @if(isset($item['image']) && $item['image'])
+                        <img src="{{ asset($item['image']) }}" alt="{{ $item['name'] }}">
+                    @else
+                        <img src="{{ asset('assets/bg_mobile.png') }}" alt="{{ $item['name'] }}">
+                    @endif
+                </div>
+                <div class="menu-details">
+                    <div>
+                        <h3 class="menu-title">{{ $item['name'] }}</h3>
+                        <p class="menu-desc" style="color: #000;">
+                            <strong>Catatan:</strong> {{ $item['catatan'] ?? '-' }}
+                        </p>
+                        <div class="menu-price">Rp. {{ number_format($item['price'], 0, ',', '.') }}</div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <a href="{{ route('menu.show', $id) }}" class="btn-order" style="width: auto; padding: 0.3rem 1.2rem;">Ubah</a>
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="empty-state">
+                <p>Keranjang Anda masih kosong.</p>
+            </div>
+            @endforelse
+        </div>
+
+        @if(count($cart) > 0)
+        <form id="checkoutForm" action="{{ route('cart.checkout') }}" method="POST">
+            @csrf
+            <div class="cart-details-section" style="padding: 1rem; color: #fff;">
+                <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Nomor Meja</h4>
+                <select name="meja" id="mejaSelect" class="form-control" style="background: #fff; margin-bottom: 0.3rem; font-weight: 700;" required>
+                    <option value="" disabled selected>Pilih Nomor Meja</option>
+                    <option value="01">Meja 01</option>
+                    <option value="02">Meja 02</option>
+                    <option value="03">Meja 03</option>
+                    <option value="04">Meja 04</option>
+                    <option value="05">Meja 05</option>
+                    <option value="06">Meja 06</option>
+                    <option value="07">Meja 07</option>
+                    <option value="08">Meja 08</option>
+                    <option value="09">Meja 09</option>
+                    <option value="10">Meja 10</option>
+                </select>
+                <div id="mejaError" style="color: #ff6b6b; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.2rem; display: none;">* Silakan pilih nomor meja terlebih dahulu</div>
+
+                <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Detail Pesanan</h4>
+                <div style="background: #fff; border-radius: 8px; padding: 1rem; color: #000;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-weight: 700; font-size: 0.9rem;">Nama</span>
+                        <span style="font-weight: 700; font-size: 0.9rem;">{{ session('nama') }}</span>
+                    </div>
+                    <hr style="border: none; border-top: 1.5px dashed #999; margin: 0.8rem 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-weight: 700; font-size: 0.9rem;">Total</span>
+                        <span style="font-weight: 800; font-size: 0.9rem;">{{ number_format($totalPrice, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cart-container" style="background: transparent; box-shadow: none;">
+                <button type="button" id="btnPesanSekarang" class="cart-bar" style="border: none; cursor: pointer; display: flex; justify-content: center; font-size: 1rem; font-weight: 700;">
+                    Pesan Sekarang
+                </button>
+            </div>
+        </form>
+        @endif
+
+    </div>
+
+    <!-- Modals -->
+    <div id="confirmModal" class="full-modal" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-icon">?</div>
+            <h2>Apakah pesanan<br>sudah benar ?</h2>
+            <p>Pastikan pesanan sudah benar !!</p>
+            <div class="modal-buttons">
+                <button type="button" class="btn-belum" id="btnBelum">Belum</button>
+                <button type="button" class="btn-sudah" id="btnSudah">Ya, Sudah</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModal" class="full-modal" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-icon-success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#26160F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2>Berhasil !</h2>
+            <p>Pesanan anda sudah masuk</p>
+            <div class="modal-alert">
+                "SILAHKAN PERGI KE KASIR UNTUK MELAKUKAN PEMBAYARAN"
+            </div>
+            <button type="button" class="btn-oke" id="btnOke">OKE</button>
+        </div>
+    </div>
+
+    <script>
+        const btnPesanSekarang = document.getElementById('btnPesanSekarang');
+        const mejaSelect = document.getElementById('mejaSelect');
+        const mejaError = document.getElementById('mejaError');
+        const confirmModal = document.getElementById('confirmModal');
+        const successModal = document.getElementById('successModal');
+        const btnBelum = document.getElementById('btnBelum');
+        const btnSudah = document.getElementById('btnSudah');
+        const btnOke = document.getElementById('btnOke');
+        const checkoutForm = document.getElementById('checkoutForm');
+
+        if (mejaSelect) {
+            mejaSelect.addEventListener('change', () => {
+                if (mejaSelect.value) {
+                    mejaError.style.display = 'none';
+                }
+            });
+        }
+
+        if (btnPesanSekarang) {
+            btnPesanSekarang.addEventListener('click', () => {
+                if (!mejaSelect.value) {
+                    mejaError.style.display = 'block';
+                    mejaSelect.focus();
+                    return;
+                }
+                mejaError.style.display = 'none';
+                confirmModal.style.display = 'flex';
+            });
+        }
+
+        if (btnBelum) {
+            btnBelum.addEventListener('click', () => {
+                confirmModal.style.display = 'none';
+            });
+        }
+
+        if (btnSudah) {
+            btnSudah.addEventListener('click', () => {
+                confirmModal.style.display = 'none';
+                successModal.style.display = 'flex';
+            });
+        }
+
+        if (btnOke) {
+            btnOke.addEventListener('click', () => {
+                checkoutForm.submit();
+            });
+        }
+    </script>
+</body>
+</html>
