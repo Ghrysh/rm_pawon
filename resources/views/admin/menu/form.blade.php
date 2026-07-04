@@ -19,19 +19,19 @@
             <div style="flex:1; min-width: 300px;">
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display:block; font-weight:700; margin-bottom:0.5rem; color:#111; font-size:1rem;">Nama Menu</label>
-                    <input type="text" name="name" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem;" value="{{ $menu->name ?? '' }}" {{ $mode == 'show' ? 'readonly' : 'required' }}>
+                    <input type="text" name="name" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem;" value="{{ old('name', $menu->name ?? '') }}" {{ $mode == 'show' ? 'readonly' : 'required' }}>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display:block; font-weight:700; margin-bottom:0.5rem; color:#111; font-size:1rem;">Harga</label>
-                    <input type="number" name="price" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem;" value="{{ $menu->price ?? '' }}" {{ $mode == 'show' ? 'readonly' : 'required' }}>
+                    <input type="number" name="price" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem;" value="{{ old('price', $menu->price ?? '') }}" {{ $mode == 'show' ? 'readonly' : 'required' }}>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display:block; font-weight:700; margin-bottom:0.5rem; color:#111; font-size:1rem;">Keterangan</label>
-                    <textarea name="description" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem; height: 120px; resize:none;" placeholder="Keterangan" {{ $mode == 'show' ? 'readonly' : '' }}>{{ $menu->description ?? '' }}</textarea>
+                    <textarea name="description" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem; height: 120px; resize:none;" placeholder="Keterangan" {{ $mode == 'show' ? 'readonly' : '' }}>{{ old('description', $menu->description ?? '') }}</textarea>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display:block; font-weight:700; margin-bottom:0.5rem; color:#111; font-size:1rem;">Stok</label>
-                    <input type="number" name="stok" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem;" value="{{ $menu->stok ?? '' }}" {{ $mode == 'show' ? 'readonly' : 'required' }}>
+                    <input type="number" name="stok" class="form-input" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem;" value="{{ old('stok', $menu->stok ?? '') }}" {{ $mode == 'show' ? 'readonly' : 'required' }}>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display:block; font-weight:700; margin-bottom:0.5rem; color:#111; font-size:1rem;">Kategori</label>
@@ -41,7 +41,7 @@
                         <select class="form-input" name="category_id" style="width: 100%; border-radius: 8px; border: 1px solid #ccc; padding: 0.8rem; background-color: #fff;" required>
                             <option value="" disabled {{ !isset($menu) ? 'selected' : '' }}>-- Pilih Kategori --</option>
                             @foreach($categories as $c)
-                                <option value="{{ $c->id }}" {{ (isset($menu) && $menu->category_id == $c->id) ? 'selected' : '' }}>{{ $c->name }}</option>
+                                <option value="{{ $c->id }}" {{ old('category_id', $menu->category_id ?? '') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                             @endforeach
                         </select>
                     @endif
@@ -53,10 +53,10 @@
                 <label style="display:block; font-weight:700; margin-bottom:0.5rem; color:#111; font-size:1rem;">Gambar</label>
                 
                 @if($mode != 'show')
-                <div style="display: flex; align-items: center; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
-                    <label for="imageUpload" style="background:#e0e0e0; padding:0.8rem 1.5rem; cursor:pointer; font-weight:600; color:#555; border-right:1px solid #ccc;">Choose File</label>
-                    <span id="fileName" style="padding:0.8rem 1rem; color:#777;">No File Chosen</span>
-                    <input type="file" name="image" id="imageUpload" style="display:none;" accept="image/*" onchange="previewFormImage(this)">
+                <div style="display: flex; align-items: center; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; position: relative;">
+                    <label for="imageUpload" style="background:#e0e0e0; padding:0.8rem 1.5rem; cursor:pointer; font-weight:600; color:#555; border-right:1px solid #ccc; margin:0;">Pilih File</label>
+                    <span id="fileName" style="padding:0.8rem 1rem; color:#777; font-size: 0.9rem;">Maks: 5MB (JPG/PNG)</span>
+                    <input type="file" name="image" id="imageUpload" style="opacity:0; position:absolute; z-index:-1; width:100%; height:100%; left:0; top:0; cursor:pointer;" accept="image/*" onchange="previewFormImage(this)" {{ $mode == 'create' ? 'required' : '' }}>
                 </div>
                 @endif
                 
@@ -80,7 +80,7 @@
                 Simpan
             </button>
             @elseif($mode == 'create')
-            <button type="submit" style="background:#3358d4; color:#fff; border:none; padding:0.6rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1rem; display:flex; align-items:center; gap:0.5rem;">
+            <button type="button" onclick="openConfirmCreateModal()" style="background:#3358d4; color:#fff; border:none; padding:0.6rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1rem; display:flex; align-items:center; gap:0.5rem;">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                 Simpan
             </button>
@@ -110,12 +110,65 @@
 </div>
 @endif
 
+@if($mode == 'create')
+<!-- Modal Konfirmasi Create -->
+<div id="confirmCreateModal" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+    <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2.5rem; border-radius:24px; text-align:center; width:90%; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
+        <div style="width:100px; height:100px; border-radius:50%; border:4px solid #666; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+            <span style="font-size:4rem; font-weight:800; color:#666; font-family:sans-serif;">?</span>
+        </div>
+        <h3 style="font-size:1.6rem; font-weight:800; margin-bottom:0.5rem; color:#000;">Simpan Menu Baru?</h3>
+        <p style="font-size:1.1rem; color:#111; margin-bottom:1.5rem;">Pastikan data menu sudah benar</p>
+        <div class="confirm-actions" style="display:flex; justify-content:center; gap:1rem;">
+            <button type="button" onclick="document.getElementById('menuForm').submit()" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Ya, Simpan</button>
+            <button type="button" onclick="closeConfirmCreateModal()" style="background:#fff; color:#555; border:1px solid #666; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Batal</button>
+        </div>
+    </div>
+</div>
+@endif
+
 <script>
     function openConfirmModal() {
+        const form = document.getElementById('menuForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
         document.getElementById('confirmEditModal').style.display = 'flex';
     }
     function closeConfirmModal() {
         document.getElementById('confirmEditModal').style.display = 'none';
+    }
+
+    function openConfirmCreateModal() {
+        const form = document.getElementById('menuForm');
+        const fileInput = document.getElementById('imageUpload');
+        
+        // Custom validation for file type and size
+        if (fileInput && fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            
+            if (file.size > 5 * 1024 * 1024) {
+                fileInput.setCustomValidity('Ukuran gambar maksimal adalah 5MB.');
+            } else if (!allowedTypes.includes(file.type)) {
+                fileInput.setCustomValidity('Format gambar harus JPG atau PNG.');
+            } else {
+                fileInput.setCustomValidity('');
+            }
+        } else if (fileInput && fileInput.hasAttribute('required')) {
+            fileInput.setCustomValidity('Pilih gambar menu terlebih dahulu.');
+        }
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        document.getElementById('confirmCreateModal').style.display = 'flex';
+    }
+    function closeConfirmCreateModal() {
+        document.getElementById('confirmCreateModal').style.display = 'none';
     }
 
     function previewFormImage(input) {

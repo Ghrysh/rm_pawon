@@ -17,6 +17,8 @@ Route::get('/cart', [MenuController::class, 'cart'])->name('cart.index');
 Route::post('/cart/checkout', [MenuController::class, 'checkout'])->name('cart.checkout');
 Route::get('/receipt', [MenuController::class, 'receipt'])->name('receipt');
 Route::post('/receipt/reset', [MenuController::class, 'reset'])->name('receipt.reset');
+Route::get('/start/reset', [MenuController::class, 'fullReset'])->name('start.reset');
+Route::get('/api/order/{id}/status', [MenuController::class, 'orderStatus'])->name('api.order.status');
 
 // Admin Auth Routes
 use App\Http\Controllers\AuthController;

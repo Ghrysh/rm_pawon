@@ -10,8 +10,41 @@
 </div>
 
 <div class="table-card">
-    <div class="table-header" style="justify-content: flex-end;">
-        <input type="text" class="search-input-table" placeholder="Cari Pesanan">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+            <div style="display:flex; gap:0.5rem; background:#f0f2f5; padding:0.4rem; border-radius:10px;">
+                <button type="button" class="filter-tab active" data-value="semua" onclick="setFilterType(this)">Semua</button>
+                <button type="button" class="filter-tab" data-value="dine-in" onclick="setFilterType(this)">Dine In</button>
+                <button type="button" class="filter-tab" data-value="take-away" onclick="setFilterType(this)">Take Away</button>
+            </div>
+            <input type="hidden" id="filterType" value="semua">
+            
+            <style>
+            .filter-tab {
+                background: transparent;
+                color: #555;
+                border: none;
+                padding: 0.6rem 1.2rem;
+                border-radius: 8px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .filter-tab.active {
+                background: #fff;
+                color: #3252b3;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            }
+            </style>
+            <div style="display:flex; align-items:center; gap:0.5rem; background:#fff; border:1px solid #ccc; border-radius:8px; padding:0 1rem;">
+                <label for="filterDate" style="font-weight:700; color:#555;">Tanggal:</label>
+                <input type="date" id="filterDate" style="padding:0.8rem 0.5rem; border:none; font-weight:600; outline:none; background:transparent;" onchange="filterRiwayat()">
+                <button type="button" onclick="document.getElementById('filterDate').value=''; filterRiwayat();" style="background:none; border:none; color:#999; cursor:pointer; font-weight:700;">&times;</button>
+            </div>
+        </div>
+        <div>
+            <input type="text" class="search-input-table" id="searchInput" placeholder="Cari Pesanan" style="padding:0.8rem 1rem; border-radius:8px; border:1px solid #ccc; font-weight:600; outline:none; width: 250px;">
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -22,6 +55,7 @@
                     <th>Tanggal</th>
                     <th>Nama PL</th>
                     <th>No Meja</th>
+                    <th>Pesanan</th>
                     <th>Total Harga</th>
                     <th>Status</th>
                     <th>Aksi</th>
@@ -29,11 +63,20 @@
             </thead>
             <tbody>
                 @foreach($orders as $index => $order)
-                <tr>
+                <tr class="data-row">
                     <td><strong>{{ $index + 1 }}</strong></td>
-                    <td><strong>{{ $order->created_at->format('H.i-d-m-Y') }}</strong></td>
+                    <td><strong>{{ $order->created_at->format('H.i.s-d-m-Y') }}</strong></td>
                     <td><strong>{{ $order->nama_pl }}</strong></td>
-                    <td><strong>{{ $order->no_meja }}</strong></td>
+                    <td class="col-meja"><strong>{{ $order->no_meja }}</strong></td>
+                    <td class="col-pesanan" style="max-width: 250px;">
+                        @php
+                            $pesananArr = [];
+                            foreach($order->items as $item) {
+                                $pesananArr[] = $item->menu->name . ' (' . $item->qty . ')';
+                            }
+                            echo '<strong>' . implode(', ', $pesananArr) . '</strong>';
+                        @endphp
+                    </td>
                     <td><strong>Rp.{{ number_format($order->total_harga, 0, ',', '.') }}</strong></td>
                     <td style="color: #3252b3; font-weight:700;">Selesai</td>
                     <td>
@@ -45,9 +88,12 @@
                     </td>
                 </tr>
                 @endforeach
+                <tr id="emptyRow" style="display:none;">
+                    <td colspan="8" style="text-align:center; padding: 2rem;">Data tidak ditemukan.</td>
+                </tr>
                 @if($orders->count() == 0)
                 <tr>
-                    <td colspan="7" style="text-align:center; padding: 2rem;">Belum ada riwayat transaksi.</td>
+                    <td colspan="8" style="text-align:center; padding: 2rem;">Belum ada riwayat transaksi.</td>
                 </tr>
                 @endif
             </tbody>
@@ -69,7 +115,7 @@
             </div>
             <hr class="dashed" style="border-top:1px dashed #ccc; margin: 1rem 0;">
             <div class="receipt-info" style="font-size:0.9rem; font-weight:700;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Waktu Pesan <span>{{ $order->created_at->format('d/m/Y H:i') }}</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Waktu Pesan <span>{{ $order->created_at->format('d/m/Y H:i:s') }}</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Nama <span>{{ $order->nama_pl }}</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Meja <span>{{ $order->no_meja }}</span></div>
             </div>
@@ -78,7 +124,18 @@
                 @php $totalQty = 0; @endphp
                 @foreach($order->items as $item)
                 @php $totalQty += $item->qty; @endphp
-                <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">{{ $item->qty }} {{ $item->menu->name }} <span>{{ number_format($item->qty * $item->price, 0, ',', '.') }}</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; align-items:flex-start;">
+                    <div style="flex:1; display:block;">
+                        <div style="font-weight: 800; display:block;">{{ $item->menu->name }}</div>
+                        @if($item->catatan)
+                        <div style="font-size: 0.8rem; color: #555; font-weight: 600; margin-top: 2px; display:block;">Catatan: {{ $item->catatan }}</div>
+                        @endif
+                    </div>
+                    <div style="text-align: right; padding-left: 10px; display:block;">
+                        <div style="font-weight: 800; display:block;">{{ number_format($item->qty * $item->price, 0, ',', '.') }}</div>
+                        <div style="font-size: 0.85rem; color: #555; font-weight: 700; margin-top: 2px; display:block;">x{{ $item->qty }}</div>
+                    </div>
+                </div>
                 @endforeach
             </div>
             <br><br>
@@ -125,6 +182,71 @@
         document.getElementById(id).style.display = 'none';
     }
 
+    // Prevent global search logic from layout.blade.php
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        e.stopPropagation();
+        filterRiwayat();
+    });
+
+    function setFilterType(btn) {
+        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('filterType').value = btn.getAttribute('data-value');
+        filterRiwayat();
+    }
+
+    function filterRiwayat() {
+        const type = document.getElementById('filterType').value;
+        const dateRaw = document.getElementById('filterDate').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        
+        // Format date from YYYY-MM-DD to DD-MM-YYYY to match table format "H.i.s-d-m-Y"
+        let dateFormatted = "";
+        if (dateRaw) {
+            const parts = dateRaw.split('-');
+            if (parts.length === 3) {
+                dateFormatted = parts[2] + '-' + parts[1] + '-' + parts[0];
+            }
+        }
+
+        const table = document.getElementById('riwayatTable');
+        const rows = table.querySelectorAll('tbody tr.data-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const noMeja = row.querySelector('.col-meja').innerText.trim().toLowerCase();
+            const dateStr = row.cells[1].innerText.trim();
+            const textContent = row.innerText.toLowerCase();
+            
+            let showType = true;
+            if (type === 'dine-in') showType = noMeja !== 'take away';
+            if (type === 'take-away') showType = noMeja === 'take away';
+
+            let showDate = true;
+            if (dateFormatted) {
+                // dateStr format is H.i.s-d-m-Y e.g. 15.30.00-04-07-2026
+                showDate = dateStr.includes(dateFormatted);
+            }
+
+            let showSearch = true;
+            if (search) {
+                showSearch = textContent.includes(search);
+            }
+
+            if (showType && showDate && showSearch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const emptyRow = document.getElementById('emptyRow');
+        if (emptyRow) {
+            emptyRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+    }
+
     function exportToExcel() {
         var table = document.getElementById("riwayatTable");
         var wb = XLSX.utils.book_new();
@@ -133,10 +255,12 @@
         var rows = table.querySelectorAll('tr');
         
         for (var i = 0; i < rows.length; i++) {
+            if (rows[i].style.display === 'none') continue; // Skip hidden rows from filter
+            
             var row = [];
             var cols = rows[i].querySelectorAll('th, td');
             
-            if (cols.length === 1 && cols[0].colSpan > 1) continue; // skip "Belum ada" row
+            if (cols.length === 1 && cols[0].colSpan > 1) continue; // skip "Belum ada" / empty row
             
             for (var j = 0; j < cols.length - 1; j++) {
                 row.push(cols[j].innerText.trim().replace(/\n/g, ' '));

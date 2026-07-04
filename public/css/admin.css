@@ -1099,3 +1099,25 @@ body.minimized .admin-main {
 body.minimized .admin-topbar {
     left: 80px;
 }
+
+/* Modal scaling for small height devices */
+@media screen and (max-height: 800px) {
+    .admin-modal {
+        transform: scale(0.9);
+    }
+}
+@media screen and (max-height: 700px) {
+    .admin-modal {
+        transform: scale(0.85);
+    }
+}
+@media screen and (max-height: 600px) {
+    .admin-modal {
+        transform: scale(0.75);
+    }
+}
+@media screen and (max-height: 500px) {
+    .admin-modal {
+        transform: scale(0.65);
+    }
+}

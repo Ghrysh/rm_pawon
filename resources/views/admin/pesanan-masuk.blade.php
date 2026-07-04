@@ -38,20 +38,12 @@
                 @foreach($orders as $index => $order)
                 <tr>
                     <td><strong>{{ $index + 1 }}</strong></td>
-                    <td class="date-col"><strong>{{ $order->created_at->format('H.i-d-m-Y') }}</strong></td>
+                    <td class="date-col"><strong>{{ $order->created_at->format('H.i.s-d-m-Y') }}</strong></td>
                     <td><strong>{{ $order->nama_pl }}</strong></td>
                     <td class="meja-col"><strong>{{ $order->no_meja }}</strong></td>
                     <td><strong>Rp.{{ number_format($order->total_harga, 0, ',', '.') }}</strong></td>
                     <td class="status-waiting">
-                        <form action="{{ route('admin.pesanan.status', $order->id) }}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <select class="status-select" name="status" onchange="this.form.submit()">
-                                <option value="menunggu_pembayaran" {{ $order->status == 'menunggu_pembayaran' ? 'selected' : '' }}>Menunggu Pembayaran</option>
-                                <option value="diproses" {{ $order->status == 'diproses' ? 'selected' : '' }}>Di Proses</option>
-                                <option value="selesai" {{ $order->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                            </select>
-                        </form>
+                        <span style="font-weight: 700; color: #111;">Menunggu Pembayaran</span>
                     </td>
                     <td>
                         <div class="action-buttons">
@@ -95,7 +87,7 @@
                     </div>
                     <hr class="dashed" style="border-top:2px dashed #aaa; margin: 1rem 0;">
                     <div class="receipt-info" style="font-size:0.9rem; font-weight:800; color: #111;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Waktu Pesan <span>{{ $order->created_at->format('d/m/Y H:i') }}</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Waktu Pesan <span>{{ $order->created_at->format('d/m/Y H:i:s') }}</span></div>
                         <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Nama <span>{{ $order->nama_pl }}</span></div>
                         <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Meja <span>{{ str_pad($order->no_meja, 2, '0', STR_PAD_LEFT) }}</span></div>
                     </div>
@@ -104,9 +96,17 @@
                         @php $totalQty = 0; @endphp
                         @foreach($order->items as $item)
                         @php $totalQty += $item->qty; @endphp
-                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
-                            <span>{{ $item->qty }} {{ $item->menu->name }}</span>
-                            <span>{{ number_format($item->qty * $item->price, 0, ',', '.') }}</span>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; align-items:flex-start;">
+                            <div style="flex:1; display:block;">
+                                <div style="font-weight: 800; display:block;">{{ $item->menu->name }}</div>
+                                @if($item->catatan)
+                                <div style="font-size: 0.8rem; color: #555; font-weight: 600; margin-top: 2px; display:block;">Catatan: {{ $item->catatan }}</div>
+                                @endif
+                            </div>
+                            <div style="text-align: right; padding-left: 10px; display:block;">
+                                <div style="font-weight: 800; display:block;">{{ number_format($item->qty * $item->price, 0, ',', '.') }}</div>
+                                <div style="font-size: 0.85rem; color: #555; font-weight: 700; margin-top: 2px; display:block;">x{{ $item->qty }}</div>
+                            </div>
                         </div>
                         @endforeach
                     </div>
@@ -118,9 +118,9 @@
                     </div>
                     <hr class="dashed" style="border-top:2px dashed #aaa; margin: 1rem 0;">
                     <div class="receipt-payment" style="font-size:0.9rem; font-weight:800; color: #111;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Metode Pembayaran <span id="r_metode_{{ $order->id }}">{{ $order->metode_pembayaran ?? 'Tunai' }}</span></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Dibayar <span id="r_dibayar_val_{{ $order->id }}">{{ number_format($order->dibayar ?? $order->total_harga, 0, ',', '.') }}</span></div>
-                        <div id="receipt_tunai_kembalian_{{ $order->id }}" style="display:flex; justify-content:space-between; margin-bottom:0;">Kembalian <span id="r_kembalian_val_{{ $order->id }}">{{ number_format($order->kembalian ?? 0, 0, ',', '.') }}</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Metode Pembayaran <span id="r_metode_{{ $order->id }}">-</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">Dibayar <span id="r_dibayar_val_{{ $order->id }}">-</span></div>
+                        <div id="receipt_tunai_kembalian_{{ $order->id }}" style="display:flex; justify-content:space-between; margin-bottom:0;">Kembalian <span id="r_kembalian_val_{{ $order->id }}">-</span></div>
                     </div>
                     <hr class="dashed" style="border-top:2px dashed #aaa; margin: 1rem 0;">
                     <div class="receipt-footer" style="text-align:center; margin-top: auto; padding-top: 1rem;">
@@ -157,11 +157,11 @@
                     </div>
 
                     <div class="modal-actions-right" style="margin-bottom: 1rem; display: flex; justify-content: flex-end;">
-                        <button type="button" style="width:150px; background:#9e1b1b; color:#fff; border:none; padding:0.6rem; border-radius:20px; font-weight:800; font-size:1rem; cursor:pointer;" onclick="closeModal('detailModal{{ $order->id }}'); openModal('confirmBayarModal{{ $order->id }}')">Bayar</button>
+                        <button type="button" id="btnAction_{{ $order->id }}" style="width:150px; background:#9e1b1b; color:#fff; border:none; padding:0.6rem; border-radius:20px; font-weight:800; font-size:1rem; cursor:pointer;" onclick="handleActionClick('{{ $order->id }}')">Bayar</button>
                     </div>
                     
                     <div class="modal-footer-right" style="margin-top: auto; padding-top: 2rem; display: flex; justify-content: flex-end;">
-                        <button type="button" style="width:150px; background:#3252b3; color:#fff; border:none; padding:0.6rem; border-radius:20px; font-weight:800; font-size:1rem; cursor:pointer;" onclick="window.print()">Cetak Struk</button>
+                        <button type="button" id="btnCetak_{{ $order->id }}" disabled style="width:150px; background:#ccc; color:#fff; border:none; padding:0.6rem; border-radius:20px; font-weight:800; font-size:1rem; cursor:not-allowed;" onclick="handleCetakStruk('{{ $order->id }}')">Cetak Struk</button>
                     </div>
                 </div>
             </div>
@@ -173,10 +173,25 @@
 <div id="confirmBayarModal{{ $order->id }}" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
     <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2.5rem; border-radius:24px; text-align:center; width:90%; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
         <div style="width:100px; height:100px; border-radius:50%; border:4px solid #666; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
-            <span style="font-size:4rem; font-weight:800; color:#666; font-family:sans-serif;">!</span>
+            <span style="font-size:4rem; font-weight:800; color:#666; font-family:sans-serif;">?</span>
         </div>
         <h3 style="font-size:1.6rem; font-weight:800; margin-bottom:0.5rem; color:#000;">Konfirmasi Pembayaran?</h3>
         <p style="font-size:1.1rem; color:#111; margin-bottom:1.5rem;">Pastikan uang yang diterima sudah sesuai</p>
+        <div class="confirm-actions" style="display:flex; justify-content:center; gap:1rem;">
+            <button type="button" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;" onclick="confirmPaymentUI('{{ $order->id }}')">Ya, Bayar</button>
+            <button type="button" onclick="closeModal('confirmBayarModal{{ $order->id }}')" style="background:#fff; color:#555; border:1px solid #666; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Selesai -->
+<div id="confirmSelesaiModal{{ $order->id }}" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+    <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2.5rem; border-radius:24px; text-align:center; width:90%; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
+        <div style="width:100px; height:100px; border-radius:50%; border:4px solid #666; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+            <svg viewBox="0 0 24 24" width="50" height="50" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: #666;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3 style="font-size:1.6rem; font-weight:800; margin-bottom:0.5rem; color:#000;">Selesaikan Pesanan?</h3>
+        <p style="font-size:1.1rem; color:#111; margin-bottom:1.5rem;">Pesanan akan diproses ke dapur.</p>
         <div class="confirm-actions" style="display:flex; justify-content:center; gap:1rem;">
             <form action="{{ route('admin.pesanan.pay', $order->id) }}" method="POST">
                 @csrf
@@ -184,9 +199,23 @@
                 <input type="hidden" name="metode_pembayaran" id="submitMetode_{{ $order->id }}" value="Tunai">
                 <input type="hidden" name="dibayar" id="submitDibayar_{{ $order->id }}" value="0">
                 <input type="hidden" name="kembalian" id="submitKembalian_{{ $order->id }}" value="0">
-                <button type="button" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;" onclick="submitPayment('{{ $order->id }}', this)">Ya, Bayar</button>
+                <button type="button" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;" onclick="submitPayment('{{ $order->id }}', this)">Ya, Selesai</button>
             </form>
-            <button type="button" onclick="closeModal('confirmBayarModal{{ $order->id }}')" style="background:#fff; color:#555; border:1px solid #666; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Batal</button>
+            <button type="button" onclick="closeModal('confirmSelesaiModal{{ $order->id }}')" style="background:#fff; color:#555; border:1px solid #666; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Peringatan Uang Kurang -->
+<div id="warningKurangModal{{ $order->id }}" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+    <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2.5rem; border-radius:24px; text-align:center; width:90%; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
+        <div style="width:100px; height:100px; border-radius:50%; border:4px solid #bb1f21; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+            <span style="font-size:4rem; font-weight:800; color:#bb1f21; font-family:sans-serif;">!</span>
+        </div>
+        <h3 style="font-size:1.6rem; font-weight:800; margin-bottom:0.5rem; color:#000;">Niminal Uang Kurang!</h3>
+        <p style="font-size:1.1rem; color:#111; margin-bottom:1.5rem;">Maaf, nominal uang yang dibayar kurang dari total harga.</p>
+        <div class="confirm-actions" style="display:flex; justify-content:center; gap:1rem;">
+            <button type="button" onclick="closeModal('warningKurangModal{{ $order->id }}')" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Oke Mengerti</button>
         </div>
     </div>
 </div>
@@ -296,22 +325,12 @@
             var metode = elMetode.value;
             
             var tunaiFields = document.getElementById('tunaiFields_' + orderId);
-            var rMetode = document.getElementById('r_metode_' + orderId);
-            var rKembalianRow = document.getElementById('receipt_tunai_kembalian_' + orderId);
-            var rDibayarVal = document.getElementById('r_dibayar_val_' + orderId);
-            var elTotal = document.getElementById('totalHarga_' + orderId);
-            var totalHarga = elTotal ? (parseFloat(elTotal.value) || 0) : 0;
-            
-            if (rMetode) rMetode.innerText = metode;
             
             if (metode === 'Tunai') {
                 if (tunaiFields) tunaiFields.style.display = 'block';
-                if (rKembalianRow) rKembalianRow.style.display = 'flex';
                 calculateKembalian(orderId);
             } else {
                 if (tunaiFields) tunaiFields.style.display = 'none';
-                if (rKembalianRow) rKembalianRow.style.display = 'none';
-                if (rDibayarVal) rDibayarVal.innerText = totalHarga.toLocaleString('id-ID');
             }
         } catch (e) {
             console.error("togglePayment error: ", e);
@@ -349,29 +368,110 @@
             var total = elTotal ? (parseFloat(elTotal.value) || 0) : 0;
             
             var kembalian = dibayar - total;
-            if (kembalian < 0) kembalian = 0;
             
             var elInputKembalian = document.getElementById('inputKembalian_' + orderId);
-            if (elInputKembalian) elInputKembalian.value = 'Rp. ' + kembalian.toLocaleString('id-ID');
+            if (elInputKembalian) {
+                if (kembalian < 0) {
+                    elInputKembalian.value = '-Rp. ' + Math.abs(kembalian).toLocaleString('id-ID');
+                    elInputKembalian.style.color = '#bb1f21';
+                } else {
+                    elInputKembalian.value = 'Rp. ' + kembalian.toLocaleString('id-ID');
+                    elInputKembalian.style.color = '#888';
+                }
+            }
             
             var elKembalianVal = document.getElementById('kembalianVal_' + orderId);
             if (elKembalianVal) elKembalianVal.value = kembalian;
-            
-            var elRDibayarVal = document.getElementById('r_dibayar_val_' + orderId);
-            if (elRDibayarVal) elRDibayarVal.innerText = dibayar.toLocaleString('id-ID');
-            
-            var elRKembalianVal = document.getElementById('r_kembalian_val_' + orderId);
-            if (elRKembalianVal) elRKembalianVal.innerText = kembalian.toLocaleString('id-ID');
         } catch (e) {
             console.error("calculateKembalian error: ", e);
+        }
+    }
+
+    function handleActionClick(orderId) {
+        var btn = document.getElementById('btnAction_' + orderId);
+        if (btn.innerText === 'Bayar') {
+            var metode = document.getElementById('metodePembayaran_' + orderId).value;
+            if (metode === 'Tunai') {
+                var elDibayar = document.getElementById('inputDibayar_' + orderId);
+                var dibayar = elDibayar ? (parseFloat(elDibayar.value) || 0) : 0;
+                
+                var elTotal = document.getElementById('totalHarga_' + orderId);
+                var total = elTotal ? (parseFloat(elTotal.value) || 0) : 0;
+                
+                if (dibayar < total) {
+                    openModal('warningKurangModal' + orderId);
+                    return;
+                }
+            }
+            openModal('confirmBayarModal' + orderId);
+        } else if (btn.innerText === 'Selesai' && !btn.disabled) {
+            openModal('confirmSelesaiModal' + orderId);
+        }
+    }
+
+    function confirmPaymentUI(orderId) {
+        closeModal('confirmBayarModal' + orderId);
+        
+        // Update Receipt Values on the left
+        var metode = document.getElementById('metodePembayaran_' + orderId).value;
+        document.getElementById('r_metode_' + orderId).innerText = metode;
+        
+        var rKembalianRow = document.getElementById('receipt_tunai_kembalian_' + orderId);
+        var rDibayarVal = document.getElementById('r_dibayar_val_' + orderId);
+        var rKembalianVal = document.getElementById('r_kembalian_val_' + orderId);
+        
+        var elTotal = document.getElementById('totalHarga_' + orderId);
+        var totalHarga = elTotal ? (parseFloat(elTotal.value) || 0) : 0;
+        
+        if (metode === 'Tunai') {
+            if (rKembalianRow) rKembalianRow.style.display = 'flex';
+            var dibayar = parseFloat(document.getElementById('inputDibayar_' + orderId).value) || 0;
+            var kembalian = parseFloat(document.getElementById('kembalianVal_' + orderId).value) || 0;
+            if (rDibayarVal) rDibayarVal.innerText = dibayar.toLocaleString('id-ID');
+            if (rKembalianVal) rKembalianVal.innerText = kembalian.toLocaleString('id-ID');
+        } else {
+            if (rKembalianRow) rKembalianRow.style.display = 'none';
+            if (rDibayarVal) rDibayarVal.innerText = totalHarga.toLocaleString('id-ID');
+        }
+        
+        // Disable Inputs
+        document.getElementById('metodePembayaran_' + orderId).disabled = true;
+        var inputDibayarText = document.getElementById('inputDibayarText_' + orderId);
+        if(inputDibayarText) inputDibayarText.disabled = true;
+        
+        // Enable Cetak Struk button
+        var btnCetak = document.getElementById('btnCetak_' + orderId);
+        btnCetak.disabled = false;
+        btnCetak.style.background = '#3252b3';
+        btnCetak.style.cursor = 'pointer';
+        
+        // Change Bayar to Selesai and disable it initially
+        var btnAction = document.getElementById('btnAction_' + orderId);
+        btnAction.innerText = 'Selesai';
+        btnAction.disabled = true;
+        btnAction.style.background = '#ccc';
+        btnAction.style.cursor = 'not-allowed';
+    }
+
+    function handleCetakStruk(orderId) {
+        window.print();
+        
+        // After printing, enable the Selesai button
+        var btnAction = document.getElementById('btnAction_' + orderId);
+        if(btnAction.innerText === 'Selesai') {
+            btnAction.disabled = false;
+            btnAction.style.background = '#9e1b1b';
+            btnAction.style.cursor = 'pointer';
         }
     }
 
     function submitPayment(orderId, btn) {
         var form = btn.closest('form');
         document.getElementById('submitMetode_' + orderId).value = document.getElementById('metodePembayaran_' + orderId).value;
-        document.getElementById('submitDibayar_' + orderId).value = document.getElementById('inputDibayar_' + orderId).value || 0;
-        document.getElementById('submitKembalian_' + orderId).value = document.getElementById('kembalianVal_' + orderId).value || 0;
+        var dibayar = document.getElementById('inputDibayar_' + orderId) ? document.getElementById('inputDibayar_' + orderId).value : 0;
+        document.getElementById('submitDibayar_' + orderId).value = dibayar || 0;
+        var kembalian = document.getElementById('kembalianVal_' + orderId) ? document.getElementById('kembalianVal_' + orderId).value : 0;
+        document.getElementById('submitKembalian_' + orderId).value = kembalian || 0;
         form.submit();
     }
 

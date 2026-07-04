@@ -4,7 +4,7 @@
     </div>
 @else
     @foreach($menus as $menu)
-    <div class="menu-card">
+    <div class="menu-card" style="cursor: pointer;" onclick="window.location.href='{{ route('menu.show', $menu->id) }}'">
         <div class="menu-image">
             @if($menu->image)
                 <img src="{{ asset($menu->image) }}" alt="{{ $menu->name }}">

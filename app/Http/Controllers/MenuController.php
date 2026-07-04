@@ -106,7 +106,12 @@ class MenuController extends Controller
             return redirect('/');
         }
         $cart = session('cart', []);
-        return view('cart.index', compact('cart'));
+        
+        $bookedTables = \App\Models\Order::whereIn('status', ['menunggu_pembayaran', 'diproses'])
+                                         ->pluck('no_meja')
+                                         ->toArray();
+                                         
+        return view('cart.index', compact('cart', 'bookedTables'));
     }
 
     public function checkout(Request $request)
@@ -168,5 +173,20 @@ class MenuController extends Controller
     {
         session()->forget(['order_id']);
         return redirect()->route('menu.index');
+    }
+
+    public function fullReset()
+    {
+        session()->forget(['order_id', 'nama', 'cart']);
+        return redirect('/');
+    }
+
+    public function orderStatus($id)
+    {
+        $order = \App\Models\Order::find($id);
+        if ($order) {
+            return response()->json(['status' => $order->status]);
+        }
+        return response()->json(['status' => null], 404);
     }
 }

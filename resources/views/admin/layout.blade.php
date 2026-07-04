@@ -62,8 +62,13 @@
         <main class="admin-main">
             <!-- Topbar -->
             <header class="admin-topbar">
-                <div class="topbar-left" style="cursor: pointer;" onclick="document.body.classList.toggle('minimized')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <div style="display: flex; align-items: center;">
+                    <div class="topbar-left" style="cursor: pointer;" onclick="document.body.classList.toggle('minimized')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </div>
+                    <div style="cursor: pointer; margin-left: 1.5rem; color: #555; display: flex; align-items: center;" onclick="window.location.reload()" title="Refresh Data">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    </div>
                 </div>
                 <div class="topbar-right">
                     @php
@@ -75,19 +80,6 @@
                             <span style="position: absolute; bottom: -5px; right: -5px; background: #bb1f21; color: white; border-radius: 50%; font-size: 0.7rem; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-weight: bold;">{{ $newOrdersCount }}</span>
                         @endif
                     </a>
-                    
-                    <div style="display: flex; align-items: center; position: relative;">
-                        <div class="topbar-icon" id="searchIconBtn" style="cursor: pointer; margin-left: 1rem;" onclick="toggleSearch()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        </div>
-                        <div id="searchContainer" style="display: none; margin-left: 0.5rem; position: relative;">
-                            <input type="text" id="liveSearchInput" placeholder="Search menu, pesanan..." style="border: 1px solid #ccc; border-radius: 20px; padding: 0.4rem 1rem; outline: none; font-size: 0.9rem; width: 200px;" oninput="performSearch(this.value)">
-                            
-                            <div id="searchDropdown" style="display: none; position: absolute; top: 120%; right: 0; width: 300px; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; max-height: 400px; overflow-y: auto;">
-                                <div id="searchResults" style="padding: 0.5rem;"></div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="topbar-divider"></div>
                     <button type="button" class="btn-logout" onclick="document.getElementById('confirmLogoutModal').style.display='flex'">Logout</button>
@@ -131,134 +123,126 @@
     </div>
 
     <script>
-        function toggleSearch() {
-            var container = document.getElementById('searchContainer');
-            if (container.style.display === 'none') {
-                container.style.display = 'block';
-                document.getElementById('liveSearchInput').focus();
-            } else {
-                container.style.display = 'none';
-                document.getElementById('searchDropdown').style.display = 'none';
-            }
-        }
+        // Auto Refresh Logic
+        setInterval(() => {
+            // Pause refresh if any modal is open
+            const modals = document.querySelectorAll('.admin-modal-overlay');
+            let isModalOpen = false;
+            modals.forEach(m => {
+                if(m.style.display === 'flex' || m.style.display === 'block') isModalOpen = true;
+            });
 
-        let searchTimeout;
-        function performSearch(val) {
-            clearTimeout(searchTimeout);
-            var dropdown = document.getElementById('searchDropdown');
-            var resultsDiv = document.getElementById('searchResults');
-            
-            if (val.trim() === '') {
-                dropdown.style.display = 'none';
-                return;
-            }
+            // Pause refresh if search input is focused
+            const searchInputs = document.querySelectorAll('.search-input-table');
+            let isSearching = false;
+            searchInputs.forEach(input => {
+                if(document.activeElement === input) {
+                    isSearching = true;
+                }
+            });
 
-            searchTimeout = setTimeout(() => {
-                fetch(`{{ route('admin.search') }}?search=${encodeURIComponent(val)}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
+            // Pause refresh on create/edit form pages
+            const isFormPage = window.location.pathname.includes('/create') || window.location.pathname.includes('/edit');
+
+            if (!isModalOpen && !isSearching && !isFormPage) {
+                // Save state
+                const searchVals = Array.from(document.querySelectorAll('.search-input-table')).map(i => i.value);
+                const filterDateEl = document.getElementById('filterDate');
+                const filterTypeEl = document.getElementById('filterType');
+                const filterDateVal = filterDateEl ? filterDateEl.value : '';
+                const filterTypeVal = filterTypeEl ? filterTypeEl.value : '';
+
+                fetch(window.location.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Replace admin-content inner HTML
+                    const newContent = doc.querySelector('.admin-content');
+                    if (newContent) {
+                        document.querySelector('.admin-content').innerHTML = newContent.innerHTML;
+                        
+                        // Restore state
+                        const newSearchInputs = document.querySelectorAll('.search-input-table');
+                        newSearchInputs.forEach((input, index) => {
+                            if (searchVals[index] !== undefined) {
+                                input.value = searchVals[index];
+                                input.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                        });
+
+                        const newFilterDateEl = document.getElementById('filterDate');
+                        const newFilterTypeEl = document.getElementById('filterType');
+                        
+                        if (newFilterDateEl) newFilterDateEl.value = filterDateVal;
+                        
+                        if (newFilterTypeEl && filterTypeVal) {
+                            newFilterTypeEl.value = filterTypeVal;
+                            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                            const activeTab = document.querySelector(`.filter-tab[data-value="${filterTypeVal}"]`);
+                            if(activeTab) activeTab.classList.add('active');
+                        }
+
+                        if (typeof filterRiwayat === 'function') {
+                            filterRiwayat();
+                        }
+                    }
+                    
+                    // Replace notification badge
+                    const newBadge = doc.querySelector('.topbar-right > a');
+                    if (newBadge) {
+                        document.querySelector('.topbar-right > a').innerHTML = newBadge.innerHTML;
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    resultsDiv.innerHTML = '';
-                    
-                    let html = '';
-                    if (data.menus.length > 0) {
-                        html += '<div style="font-weight:bold; padding: 0.5rem; border-bottom: 1px solid #eee;">Menu</div>';
-                        data.menus.forEach(menu => {
-                            html += `<div style="padding: 0.5rem; border-bottom: 1px solid #f9f9f9; cursor:pointer;" onclick="window.location.href='{{ route('admin.menu') }}'">
-                                <div>${menu.name}</div>
-                                <div style="font-size: 0.8rem; color: #777;">Rp. ${menu.price.toLocaleString('id-ID')}</div>
-                            </div>`;
-                        });
-                    }
-                    
-                    if (data.orders.length > 0) {
-                        html += '<div style="font-weight:bold; padding: 0.5rem; border-bottom: 1px solid #eee; margin-top:0.5rem;">Pesanan</div>';
-                        data.orders.forEach(order => {
-                            let link = "{{ route('admin.pesanan-masuk') }}";
-                            if(order.status == 'diproses') link = "{{ route('admin.pesanan-diproses') }}";
-                            if(order.status == 'selesai') link = "{{ route('admin.riwayat') }}";
-                            
-                            html += `<div style="padding: 0.5rem; border-bottom: 1px solid #f9f9f9; cursor:pointer;" onclick="window.location.href='${link}'">
-                                <div>${order.nama_pl} (Meja ${order.no_meja})</div>
-                                <div style="font-size: 0.8rem; color: #777;">Rp. ${order.total_harga.toLocaleString('id-ID')} - ${order.status}</div>
-                            </div>`;
-                        });
-                    }
-                    
-                    if (data.menus.length === 0 && data.orders.length === 0) {
-                        html = '<div style="padding: 1rem; text-align: center; color: #777;">Tidak ditemukan data.</div>';
-                    }
-                    
-                    resultsDiv.innerHTML = html;
-                    dropdown.style.display = 'block';
-                });
-            }, 300);
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            var container = document.getElementById('searchContainer');
-            var btn = document.getElementById('searchIconBtn');
-            if (container && !container.contains(event.target) && !btn.contains(event.target)) {
-                container.style.display = 'none';
-                document.getElementById('searchDropdown').style.display = 'none';
+                .catch(err => console.error('Auto refresh failed:', err));
             }
-        });
+        }, 10000); // 10 seconds auto-refresh interval
 
-        // Live Search for Tables
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInputs = document.querySelectorAll('.search-input-table');
-            
-            searchInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const tableCard = this.closest('.table-card') || this.closest('.admin-content');
-                    if (!tableCard) return;
+        // Live Search for Tables using Event Delegation
+        document.addEventListener('input', function(e) {
+            if (e.target && e.target.classList.contains('search-input-table')) {
+                const searchTerm = e.target.value.toLowerCase();
+                const tableCard = e.target.closest('.table-card') || e.target.closest('.admin-content');
+                if (!tableCard) return;
+                
+                const table = tableCard.querySelector('.admin-table');
+                if (!table) return;
+                
+                const rows = table.querySelectorAll('tbody tr');
+                let visibleCount = 0;
+                
+                rows.forEach(row => {
+                    const firstCell = row.querySelector('td');
+                    if (firstCell && firstCell.hasAttribute('colspan')) return;
                     
-                    const table = tableCard.querySelector('.admin-table');
-                    if (!table) return;
-                    
-                    const rows = table.querySelectorAll('tbody tr');
-                    let visibleCount = 0;
-                    
-                    rows.forEach(row => {
-                        const firstCell = row.querySelector('td');
-                        // Skip if the row is a "Belum ada pesanan" placeholder (has colspan)
-                        if (firstCell && firstCell.hasAttribute('colspan')) {
-                            return;
-                        }
-                        
-                        const text = row.textContent.toLowerCase();
-                        if (text.includes(searchTerm)) {
-                            row.style.display = '';
-                            visibleCount++;
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                    
-                    // Handle "No data" message row
-                    let emptyRow = table.querySelector('tbody .empty-search-row');
-                    if (visibleCount === 0 && rows.length > 0) {
-                        if (!emptyRow) {
-                            const tbody = table.querySelector('tbody');
-                            const colCount = table.querySelector('thead tr').children.length;
-                            emptyRow = document.createElement('tr');
-                            emptyRow.className = 'empty-search-row';
-                            emptyRow.innerHTML = `<td colspan="${colCount}" style="text-align:center; padding:2rem;">Data tidak ditemukan</td>`;
-                            tbody.appendChild(emptyRow);
-                        } else {
-                            emptyRow.style.display = '';
-                        }
-                    } else if (emptyRow) {
-                        emptyRow.style.display = 'none';
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
                     }
                 });
-            });
+                
+                let emptyRow = table.querySelector('tbody .empty-search-row');
+                if (visibleCount === 0 && rows.length > 0) {
+                    if (!emptyRow) {
+                        const tbody = table.querySelector('tbody');
+                        const colCount = table.querySelector('thead tr').children.length;
+                        emptyRow = document.createElement('tr');
+                        emptyRow.className = 'empty-search-row';
+                        emptyRow.innerHTML = `<td colspan="${colCount}" style="text-align:center; padding:2rem;">Data tidak ditemukan</td>`;
+                        tbody.appendChild(emptyRow);
+                    } else {
+                        emptyRow.style.display = '';
+                    }
+                } else if (emptyRow) {
+                    emptyRow.style.display = 'none';
+                }
+            }
         });
     </script>
 </body>

@@ -12,7 +12,7 @@
     <div class="mobile-container menu-container">
         
         <div class="header">
-            <a href="{{ url('/') }}" class="btn-back">
+            <a href="javascript:void(0)" onclick="document.getElementById('confirmBackModal').style.display='flex'" class="btn-back">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </a>
             <div class="search-container">
@@ -68,6 +68,31 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- Back Modals -->
+    <div id="confirmBackModal" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2rem; border-radius:12px; text-align:center; width:90%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div class="confirm-icon icon-warn" style="width:80px; height:80px; border-radius:50%; border:2px solid #555; display:flex; justify-content:center; align-items:center; font-size:3rem; font-weight:700; color:#555; margin:0 auto 1.5rem;">!</div>
+            <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:2rem; color:#111;">Yakin ingin kembali?</h3>
+            <div class="confirm-actions" style="display:flex; justify-content:center; gap:1rem;">
+                <button style="background:#3252b3; color:#fff; border:none; padding:0.6rem 2.5rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:1rem;" onclick="document.getElementById('confirmBackModal').style.display='none'; document.getElementById('successBackModal').style.display='flex'">Yakin</button>
+                <button style="background:#fff; color:#111; border:1px solid #777; padding:0.6rem 2.5rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:1rem;" onclick="document.getElementById('confirmBackModal').style.display='none'">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="successBackModal" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2rem; border-radius:12px; text-align:center; width:90%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div class="confirm-icon icon-success" style="width:80px; height:80px; border-radius:50%; border:2px solid #555; display:flex; justify-content:center; align-items:center; color:#555; margin:0 auto 1.5rem;">
+                <svg viewBox="0 0 24 24" width="45" height="45" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:0.8rem; color:#111;">Berhasil</h3>
+            <p style="color:#555; font-size:0.95rem; font-weight:600; margin-bottom:2rem;">Anda akan dialihkan ke halaman awal.</p>
+            <div class="confirm-actions" style="display:flex; justify-content:center;">
+                <button type="button" style="background:#3252b3; color:#fff; border:none; padding:0.6rem 3rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:1rem;" onclick="window.location.href='{{ url('/') }}'">Oke</button>
+            </div>
+        </div>
     </div>
 
     <script src="{{ asset('js/main.js') }}"></script>

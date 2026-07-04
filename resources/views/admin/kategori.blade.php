@@ -22,6 +22,19 @@
     </div>
     @endif
 
+    @if(session('error'))
+    <div id="errorModal" class="admin-modal-overlay" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+        <div class="admin-modal" style="background:#fff; padding:2.5rem 2.5rem; border-radius:24px; text-align:center; width:90%; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
+            <div style="width:100px; height:100px; border-radius:50%; border:4px solid #bb1f21; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+                <span style="font-size:4rem; font-weight:800; color:#bb1f21; font-family:sans-serif;">!</span>
+            </div>
+            <h3 style="font-size:1.6rem; font-weight:800; margin-bottom:0.5rem; color:#bb1f21;">Gagal Dihapus</h3>
+            <p style="font-size:1.1rem; color:#111; margin-bottom:1.5rem;">{{ session('error') }}</p>
+            <button type="button" onclick="document.getElementById('errorModal').style.display='none'" style="background:#bb1f21; color:#fff; border:none; padding:0.8rem 3rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; width: 200px;">Tutup</button>
+        </div>
+    </div>
+    @endif
+
     <div class="table-card">
         <div class="table-header" style="justify-content: flex-end;">
             <input type="text" class="search-input-table" placeholder="Cari Kategori">

@@ -38,20 +38,12 @@
                 @foreach($orders as $index => $order)
                 <tr>
                     <td><strong>{{ $index + 1 }}</strong></td>
-                    <td class="date-col"><strong>{{ $order->created_at->format('H.i-d-m-Y') }}</strong></td>
+                    <td class="date-col"><strong>{{ $order->created_at->format('H.i.s-d-m-Y') }}</strong></td>
                     <td><strong>{{ $order->nama_pl }}</strong></td>
                     <td class="meja-col"><strong>{{ $order->no_meja }}</strong></td>
                     <td><strong>Rp.{{ number_format($order->total_harga, 0, ',', '.') }}</strong></td>
                     <td class="status-process">
-                        <form action="{{ route('admin.pesanan.status', $order->id) }}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <select class="status-select" name="status" onchange="this.form.submit()">
-                                <option value="menunggu_pembayaran" {{ $order->status == 'menunggu_pembayaran' ? 'selected' : '' }}>Menunggu Pembayaran</option>
-                                <option value="diproses" {{ $order->status == 'diproses' ? 'selected' : '' }}>Di Proses</option>
-                                <option value="selesai" {{ $order->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                            </select>
-                        </form>
+                        <button type="button" style="background:#3252b3; color:#fff; border:none; padding:0.5rem 1rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:0.85rem;" onclick="openModal('confirmSelesaiModal{{ $order->id }}')">Selesaikan Pesanan</button>
                     </td>
                     <td>
                         <div class="action-buttons">
@@ -86,7 +78,7 @@
             </div>
             <hr class="dashed" style="border-top:1px dashed #ccc; margin: 1rem 0;">
             <div class="receipt-info" style="font-size:0.9rem; font-weight:700;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Waktu Pesan <span>{{ $order->created_at->format('d/m/Y H:i') }}</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Waktu Pesan <span>{{ $order->created_at->format('d/m/Y H:i:s') }}</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Nama <span>{{ $order->nama_pl }}</span></div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">Meja <span>{{ $order->no_meja }}</span></div>
             </div>
@@ -95,7 +87,18 @@
                 @php $totalQty = 0; @endphp
                 @foreach($order->items as $item)
                 @php $totalQty += $item->qty; @endphp
-                <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">{{ $item->qty }} {{ $item->menu->name }} <span>{{ number_format($item->qty * $item->price, 0, ',', '.') }}</span></div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; align-items:flex-start;">
+                    <div style="flex:1; display:block;">
+                        <div style="font-weight: 800; display:block;">{{ $item->menu->name }}</div>
+                        @if($item->catatan)
+                        <div style="font-size: 0.8rem; color: #555; font-weight: 600; margin-top: 2px; display:block;">Catatan: {{ $item->catatan }}</div>
+                        @endif
+                    </div>
+                    <div style="text-align: right; padding-left: 10px; display:block;">
+                        <div style="font-weight: 800; display:block;">{{ number_format($item->qty * $item->price, 0, ',', '.') }}</div>
+                        <div style="font-size: 0.85rem; color: #555; font-weight: 700; margin-top: 2px; display:block;">x{{ $item->qty }}</div>
+                    </div>
+                </div>
                 @endforeach
             </div>
             <br><br>
@@ -114,6 +117,26 @@
             <div class="receipt-footer" style="text-align:center;">
                 <h3 style="margin:0;">Terima Kasih</h3>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Selesai (Di Proses -> Selesai) -->
+<div id="confirmSelesaiModal{{ $order->id }}" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+    <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2.5rem; border-radius:24px; text-align:center; width:90%; max-width:500px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
+        <div style="width:100px; height:100px; border-radius:50%; border:4px solid #666; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+            <svg viewBox="0 0 24 24" width="50" height="50" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: #666;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3 style="font-size:1.6rem; font-weight:800; margin-bottom:0.5rem; color:#000;">Selesaikan Pesanan?</h3>
+        <p style="font-size:1.1rem; color:#111; margin-bottom:1.5rem;">Tandai pesanan ini sudah selesai dan dihidangkan.</p>
+        <div class="confirm-actions" style="display:flex; justify-content:center; gap:1rem;">
+            <form action="{{ route('admin.pesanan.status', $order->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="status" value="selesai">
+                <button type="submit" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Ya, Selesai</button>
+            </form>
+            <button type="button" onclick="closeModal('confirmSelesaiModal{{ $order->id }}')" style="background:#fff; color:#555; border:1px solid #666; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; min-width: 140px;">Batal</button>
         </div>
     </div>
 </div>

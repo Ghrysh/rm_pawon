@@ -22,7 +22,7 @@
                 @foreach($orders as $index => $order)
                 <tr>
                     <td><strong>{{ $index + 1 }}</strong></td>
-                    <td><strong>{{ $order->created_at->format('d/m/Y H:i') }}</strong></td>
+                    <td><strong>{{ $order->created_at->format('d/m/Y H:i:s') }}</strong></td>
                     <td><strong>{{ $order->nama_pl }}</strong></td>
                     <td><strong>{{ $order->no_meja }}</strong></td>
                     <td><strong>Rp.{{ number_format($order->total_harga, 0, ',', '.') }}</strong></td>

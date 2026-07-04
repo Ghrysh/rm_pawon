@@ -39,9 +39,10 @@
                         <p class="menu-desc" style="color: #000;">
                             <strong>Catatan:</strong> {{ $item['catatan'] ?? '-' }}
                         </p>
-                        <div class="menu-price">Rp. {{ number_format($item['price'], 0, ',', '.') }}</div>
+                        <div class="menu-price">Rp. {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}</div>
                     </div>
-                    <div style="display: flex; justify-content: flex-end;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                        <span style="font-weight: 700; font-size: 0.9rem; color: #000;">x{{ $item['qty'] }}</span>
                         <a href="{{ route('menu.show', $id) }}" class="btn-order" style="width: auto; padding: 0.3rem 1.2rem;">Ubah</a>
                     </div>
                 </div>
@@ -60,16 +61,16 @@
                 <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Nomor Meja</h4>
                 <select name="meja" id="mejaSelect" class="form-control" style="background: #fff; margin-bottom: 0.3rem; font-weight: 700;" required>
                     <option value="" disabled selected>Pilih Nomor Meja</option>
-                    <option value="01">Meja 01</option>
-                    <option value="02">Meja 02</option>
-                    <option value="03">Meja 03</option>
-                    <option value="04">Meja 04</option>
-                    <option value="05">Meja 05</option>
-                    <option value="06">Meja 06</option>
-                    <option value="07">Meja 07</option>
-                    <option value="08">Meja 08</option>
-                    <option value="09">Meja 09</option>
-                    <option value="10">Meja 10</option>
+                    <option value="Take Away">Take Away</option>
+                    @for($i = 1; $i <= 10; $i++)
+                        @php 
+                            $mejaNum = str_pad($i, 2, '0', STR_PAD_LEFT); 
+                            $isBooked = in_array($mejaNum, $bookedTables ?? []);
+                        @endphp
+                        <option value="{{ $mejaNum }}" {{ $isBooked ? 'disabled style=color:#aaa;' : '' }}>
+                            Meja {{ $mejaNum }} {{ $isBooked ? '(Dipesan)' : '' }}
+                        </option>
+                    @endfor
                 </select>
                 <div id="mejaError" style="color: #ff6b6b; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.2rem; display: none;">* Silakan pilih nomor meja terlebih dahulu</div>
 

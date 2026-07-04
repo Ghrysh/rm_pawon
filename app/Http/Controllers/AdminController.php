@@ -76,6 +76,13 @@ class AdminController extends Controller
     {
         $order = Order::findOrFail($id);
         if ($request->status) {
+            if ($request->status == 'diproses' && $order->status != 'diproses') {
+                foreach ($order->items as $item) {
+                    if ($item->menu) {
+                        $item->menu->decrement('stok', $item->qty);
+                    }
+                }
+            }
             $order->update(['status' => $request->status]);
         }
         return redirect()->back()->with('success', 'Status pesanan diubah');
@@ -84,6 +91,14 @@ class AdminController extends Controller
     public function payOrder(Request $request, $id)
     {
         $order = Order::findOrFail($id);
+        if ($order->status != 'diproses') {
+            foreach ($order->items as $item) {
+                if ($item->menu) {
+                    $item->menu->decrement('stok', $item->qty);
+                }
+            }
+        }
+
         $order->update([
             'status' => 'diproses',
             'metode_pembayaran' => $request->metode_pembayaran,
@@ -157,13 +172,27 @@ class AdminController extends Controller
 
     public function storeMenu(Request $request)
     {
+        $messages = [
+            'category_id.required' => 'Kategori menu wajib dipilih.',
+            'category_id.exists' => 'Kategori menu tidak valid.',
+            'name.required' => 'Nama menu wajib diisi.',
+            'price.required' => 'Harga menu wajib diisi.',
+            'price.integer' => 'Harga menu harus berupa angka.',
+            'stok.required' => 'Stok menu wajib diisi.',
+            'stok.integer' => 'Stok menu harus berupa angka.',
+            'image.required' => 'Gambar menu wajib diisi.',
+            'image.image' => 'File harus berupa gambar.',
+            'image.mimes' => 'Format gambar harus berupa jpeg, png, atau jpg.',
+            'image.max' => 'Ukuran gambar maksimal adalah 5 MB.',
+        ];
+
         $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required',
             'price' => 'required|integer',
             'stok' => 'required|integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-        ]);
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:5120'
+        ], $messages);
 
         $data = $request->except('image');
 
@@ -179,13 +208,26 @@ class AdminController extends Controller
 
     public function updateMenu(Request $request, $id)
     {
+        $messages = [
+            'category_id.required' => 'Kategori menu wajib dipilih.',
+            'category_id.exists' => 'Kategori menu tidak valid.',
+            'name.required' => 'Nama menu wajib diisi.',
+            'price.required' => 'Harga menu wajib diisi.',
+            'price.integer' => 'Harga menu harus berupa angka.',
+            'stok.required' => 'Stok menu wajib diisi.',
+            'stok.integer' => 'Stok menu harus berupa angka.',
+            'image.image' => 'File harus berupa gambar.',
+            'image.mimes' => 'Format gambar harus berupa jpeg, png, atau jpg.',
+            'image.max' => 'Ukuran gambar maksimal adalah 5 MB.',
+        ];
+
         $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required',
             'price' => 'required|integer',
             'stok' => 'required|integer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
-        ]);
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120'
+        ], $messages);
 
         $menu = Menu::findOrFail($id);
         $data = $request->except('image');
@@ -231,6 +273,11 @@ class AdminController extends Controller
     public function destroyKategori($id)
     {
         $category = Category::findOrFail($id);
+        
+        if (\App\Models\Menu::where('category_id', $id)->exists()) {
+            return redirect()->route('admin.kategori')->with('error', 'Kategori tidak dapat dihapus karena masih digunakan oleh menu.');
+        }
+
         $category->delete();
         return redirect()->route('admin.kategori')->with('success', 'Kategori berhasil di hapus');
     }
