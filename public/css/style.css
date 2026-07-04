@@ -18,10 +18,10 @@ body {
 body::before {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -50px;
+    left: -50px;
+    width: calc(100vw + 100px);
+    height: calc(100vh + 100px);
     background-image: url('../assets/bg_mobile.png');
     background-size: cover;
     background-position: center;
