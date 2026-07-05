@@ -4,8 +4,9 @@
     </div>
 @else
     @foreach($menus as $menu)
-    <div class="menu-card" style="cursor: pointer;" onclick="window.location.href='{{ route('menu.show', $menu->id) }}'">
-        <div class="menu-image">
+    @php $isOutOfStock = $menu->stok == 0; @endphp
+    <div class="menu-card {{ $isOutOfStock ? 'out-of-stock' : '' }}" style="cursor: {{ $isOutOfStock ? 'not-allowed' : 'pointer' }};" {!! $isOutOfStock ? '' : 'onclick="window.location.href=\''.route('menu.show', $menu->id).'\'"' !!}>
+        <div class="menu-image {{ $isOutOfStock ? 'out-of-stock' : '' }}">
             @if($menu->image)
                 <img src="{{ asset($menu->image) }}" alt="{{ $menu->name }}">
             @else
@@ -18,7 +19,11 @@
                 <p class="menu-desc" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">{{ $menu->description }}</p>
                 <div class="menu-price">Rp. {{ number_format($menu->price, 0, ',', '.') }}</div>
             </div>
-            <a href="{{ route('menu.show', $menu->id) }}" class="btn-order">Buat Pesanan</a>
+            @if($isOutOfStock)
+                <button type="button" class="btn-order out-of-stock">Habis</button>
+            @else
+                <a href="{{ route('menu.show', $menu->id) }}" class="btn-order">Buat Pesanan</a>
+            @endif
         </div>
     </div>
     @endforeach

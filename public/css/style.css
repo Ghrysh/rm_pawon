@@ -18,10 +18,12 @@ body {
 body::before {
     content: "";
     position: fixed;
-    top: -50px;
-    left: -50px;
-    width: calc(100vw + 100px);
-    height: calc(100vh + 100px);
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    height: 100vh;
     background-image: url('../assets/bg_mobile.png');
     background-size: cover;
     background-position: center;
@@ -230,6 +232,34 @@ body::before {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.menu-card.out-of-stock {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+}
+
+.menu-image.out-of-stock {
+    position: relative;
+}
+
+.menu-image.out-of-stock::after {
+    content: "Stok Habis";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    z-index: 2;
+}
+
+.btn-order.out-of-stock {
+    background: #999 !important;
+    pointer-events: none;
 }
 
 .menu-details {
