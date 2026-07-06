@@ -73,12 +73,12 @@
 @foreach($orders as $order)
 <!-- Modal Detail -->
 <div id="detailModal{{ $order->id }}" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-    <div class="admin-modal" style="width: 90%; max-width: 700px; background:#fff; border-radius:8px; overflow: hidden; border: 1px solid #111; padding-bottom: 0;">
-        <div class="admin-modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #111; display:flex; justify-content:space-between; align-items:center;">
+    <div class="admin-modal" style="width: 90%; max-width: 700px; max-height: 90vh; background:#fff; border-radius:8px; overflow: hidden; border: 1px solid #111; padding-bottom: 0; display: flex; flex-direction: column; position: relative;">
+        <div class="admin-modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #111; display:flex; justify-content:space-between; align-items:center; flex-shrink: 0;">
             <h2 style="margin:0; font-size:1.4rem; font-weight: 800;">Detail Pesanan</h2>
             <button onclick="closeModal('detailModal{{ $order->id }}')" style="background:none; border:none; font-size:1.8rem; cursor:pointer; color:#111; line-height:1;">&times;</button>
         </div>
-        <div class="admin-modal-body" style="padding: 0;">
+        <div class="admin-modal-body" style="padding: 0; overflow-y: auto; flex: 1;">
             <div class="split-modal" style="display:flex; flex-wrap:wrap; min-height: 400px;">
                 <div class="split-left" style="flex:1; padding: 1.5rem; border-right: 1px solid #111; min-width: 300px; display: flex; flex-direction: column;">
                     <div class="receipt-header" style="text-align:center; margin-bottom:1rem;">
@@ -160,7 +160,7 @@
                         <button type="button" id="btnAction_{{ $order->id }}" style="width:150px; background:#9e1b1b; color:#fff; border:none; padding:0.6rem; border-radius:20px; font-weight:800; font-size:1rem; cursor:pointer;" onclick="handleActionClick('{{ $order->id }}')">Bayar</button>
                     </div>
                     
-                    <div class="modal-footer-right" style="margin-top: auto; padding-top: 2rem; display: flex; justify-content: flex-end;">
+                    <div class="modal-footer-right" style="position: absolute; bottom: 1.5rem; right: 2.3rem; z-index: 100;">
                         <button type="button" id="btnCetak_{{ $order->id }}" disabled style="width:150px; background:#ccc; color:#fff; border:none; padding:0.6rem; border-radius:20px; font-weight:800; font-size:1rem; cursor:not-allowed;" onclick="handleCetakStruk('{{ $order->id }}')">Cetak Struk</button>
                     </div>
                 </div>
@@ -454,15 +454,30 @@
     }
 
     function handleCetakStruk(orderId) {
-        window.print();
+        var printContents = document.querySelector('#detailModal' + orderId + ' .split-left').innerHTML;
+        var iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        iframe.contentDocument.write('<html><head><title>Cetak Struk</title>');
+        iframe.contentDocument.write('<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">');
+        iframe.contentDocument.write('<style>body { font-family: "Poppins", sans-serif; padding: 20px; } .dashed { border-top: 2px dashed #aaa; } .receipt-header h2 { font-weight: 800; font-size: 1.4rem; } .receipt-info, .receipt-items, .receipt-summary, .receipt-payment { font-weight: 800; font-size: 0.9rem; }</style>');
+        iframe.contentDocument.write('</head><body>');
+        iframe.contentDocument.write(printContents);
+        iframe.contentDocument.write('</body></html>');
+        iframe.contentDocument.close();
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
         
-        // After printing, enable the Selesai button
-        var btnAction = document.getElementById('btnAction_' + orderId);
-        if(btnAction.innerText === 'Selesai') {
-            btnAction.disabled = false;
-            btnAction.style.background = '#9e1b1b';
-            btnAction.style.cursor = 'pointer';
-        }
+        setTimeout(function() {
+            document.body.removeChild(iframe);
+            // After printing, enable the Selesai button
+            var btnAction = document.getElementById('btnAction_' + orderId);
+            if(btnAction && btnAction.innerText === 'Selesai') {
+                btnAction.disabled = false;
+                btnAction.style.background = '#9e1b1b';
+                btnAction.style.cursor = 'pointer';
+            }
+        }, 500);
     }
 
     function submitPayment(orderId, btn) {

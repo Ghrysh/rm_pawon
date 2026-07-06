@@ -15,7 +15,9 @@ class AdminController extends Controller
         $pesananMasukCount = Order::where('status', 'menunggu_pembayaran')->count();
         $pesananDiprosesCount = Order::where('status', 'diproses')->count();
         $riwayatTransaksiCount = Order::where('status', 'selesai')->count();
-        $totalPendapatan = Order::where('status', 'selesai')->sum('total_harga');
+        $totalPendapatan = Order::where('status', 'selesai')
+                                ->whereDate('created_at', \Carbon\Carbon::today())
+                                ->sum('total_harga');
 
         // Fetch income data grouped by date (last 7 days)
         $chartData = Order::selectRaw('DATE(created_at) as date, SUM(total_harga) as total')

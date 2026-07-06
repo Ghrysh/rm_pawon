@@ -731,8 +731,27 @@ hr.dashed {
 }
 
 @media print {
+    html, body {
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        background: transparent !important;
+    }
     body * {
         visibility: hidden !important;
+    }
+    .admin-wrapper, .admin-main, .admin-content, .admin-modal-overlay, .admin-modal, .admin-modal-body, .split-modal {
+        position: static !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        border: none !important;
+    }
+    .admin-sidebar, .admin-topbar, .admin-modal-header, .split-right, .table-card, .page-title, .table-responsive {
+        display: none !important;
     }
     .split-left, .split-left * {
         visibility: visible !important;
@@ -742,8 +761,10 @@ hr.dashed {
         left: 0 !important;
         top: 0 !important;
         width: 100% !important;
-        border: none !important;
+        height: auto !important;
+        margin: 0 !important;
         padding: 0 !important;
+        border: none !important;
     }
 }
 

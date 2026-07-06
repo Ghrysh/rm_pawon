@@ -66,12 +66,12 @@
 
 @foreach($orders as $order)
 <div id="detailModal{{ $order->id }}" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-    <div class="admin-modal" style="max-width: 450px; background:#fff; border-radius:12px;">
-        <div class="admin-modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+    <div class="admin-modal" style="max-width: 450px; max-height: 90vh; background:#fff; border-radius:12px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+        <div class="admin-modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center; flex-shrink: 0;">
             <h3 style="margin:0;">Detail Pesanan</h3>
             <button onclick="closeModal('detailModal{{ $order->id }}')" style="background:none; border:none; font-size:1.8rem; cursor:pointer; color:#111; line-height:1;">&times;</button>
         </div>
-        <div class="admin-modal-body" style="padding: 1.5rem; font-family: monospace;">
+        <div class="admin-modal-body" style="padding: 1.5rem; font-family: monospace; overflow-y: auto; flex: 1;">
             <div class="receipt-header" style="text-align:center; margin-bottom:1rem;">
                 <h2 style="margin:0; font-size:1.5rem; line-height:1.2;">Pawon<br>Kang Bima</h2>
                 <p style="font-size:0.8rem; margin-top:0.5rem; color:#555;">Jl. Raya Ciwidey - Patengan, Patengan,<br>Kec. Ciwidey, Kabupaten Bandung, Jawa Barat 40973</p>

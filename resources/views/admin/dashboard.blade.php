@@ -40,7 +40,7 @@
     <div class="stat-card" style="background-color: #d1b110; justify-content: center; padding-bottom: 1.5rem;">
         <div class="stat-content">
             <div class="stat-value">Rp.{{ number_format($totalPendapatan, 0, ',', '.') }}</div>
-            <div class="stat-label">Total Pendapatan</div>
+            <div class="stat-label">Total Pendapatan Hari Ini</div>
             <div class="stat-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line><circle cx="16" cy="15" r="1"></circle></svg>
             </div>

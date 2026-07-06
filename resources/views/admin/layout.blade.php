@@ -123,6 +123,10 @@
     </div>
 
     <script>
+        // Global Notification Audio
+        const notivAudio = new Audio('{{ asset("assets/notiv.mp3") }}');
+        notivAudio.load();
+
         // Auto Refresh Logic
         setInterval(() => {
             // Pause refresh if any modal is open
@@ -192,9 +196,28 @@
                     }
                     
                     // Replace notification badge
+                    const oldBadgeSpan = document.querySelector('.topbar-right > a span');
+                    const oldBadgeCount = oldBadgeSpan ? parseInt(oldBadgeSpan.textContent.trim()) : 0;
+
                     const newBadge = doc.querySelector('.topbar-right > a');
                     if (newBadge) {
+                        const newBadgeSpan = newBadge.querySelector('span');
+                        const newBadgeCount = newBadgeSpan ? parseInt(newBadgeSpan.textContent.trim()) : 0;
+                        
                         document.querySelector('.topbar-right > a').innerHTML = newBadge.innerHTML;
+                        
+                        // Play sound if new order comes in
+                        if (newBadgeCount > oldBadgeCount) {
+                            notivAudio.currentTime = 0;
+                            let playPromise = notivAudio.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(e => console.log('Audio error:', e));
+                            }
+                            setTimeout(() => {
+                                notivAudio.pause();
+                                notivAudio.currentTime = 0;
+                            }, 3000);
+                        }
                     }
                 })
                 .catch(err => console.error('Auto refresh failed:', err));
