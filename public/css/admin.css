@@ -15,15 +15,17 @@ body.admin-body {
 body.login-body {
     background-color: #26160F;
     background-image: url('../assets/bg_dekstop.png');
-    background-size: 100vw 100vh; /* changed from cover to stretch precisely */
+    background-size: 100vw 100vh;
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100vh;
     min-height: 100vh;
     margin: 0;
+    overflow: hidden !important;
 }
 
 .login-container {
@@ -98,10 +100,25 @@ body.login-body {
 .login-error {
     background-color: #f8d7da;
     color: #721c24;
-    padding: 1rem;
+    padding: 0.8rem;
     border-radius: 6px;
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
+}
+
+/* Scaling for short screens so it never gets cut off when overflow is hidden */
+@media (max-height: 700px) {
+    .login-logo img { width: 140px; margin-bottom: 1rem; }
+    .login-box { padding: 1.5rem 2rem; }
+    .login-box h2 { font-size: 1.5rem; }
+    .login-box p { margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+}
+@media (max-height: 550px) {
+    .login-container { transform: scale(0.85); transform-origin: center; }
+}
+@media (max-height: 450px) {
+    .login-container { transform: scale(0.7); transform-origin: center; }
 }
 
 /* Layout Styles */
