@@ -94,6 +94,26 @@
                 <span>{{ number_format($order->total_harga, 0, ',', '.') }}</span>
             </div>
 
+            @if(in_array($order->status, ['diproses', 'selesai']))
+            <hr style="border: none; border-top: 1px dashed #999; margin: -0.5rem 0 1rem 0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 700; font-size: 0.85rem;">
+                <span>Metode Pembayaran</span>
+                <span>{{ $order->metode_pembayaran ?? 'Tunai' }}</span>
+            </div>
+            @if(($order->metode_pembayaran ?? 'Tunai') == 'Tunai')
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 700; font-size: 0.85rem;">
+                <span>Dibayar</span>
+                <span>{{ number_format($order->dibayar ?? $order->total_harga, 0, ',', '.') }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-weight: 700; font-size: 0.85rem;">
+                <span>Kembalian</span>
+                <span>{{ number_format($order->kembalian ?? 0, 0, ',', '.') }}</span>
+            </div>
+            @else
+            <div style="margin-bottom: 1.5rem;"></div>
+            @endif
+            @endif
+
             <div style="text-align: center; font-weight: 800; font-size: 1.1rem; color: #000;">
                 - Terima Kasih -
             </div>
@@ -118,9 +138,55 @@
 
         <form id="resetForm" action="{{ route('receipt.reset') }}" method="POST" style="margin-top: 2rem; text-align: center;">
             @csrf
-            <button type="submit" class="btn-oke" style="width: 60%; font-size: 1rem; padding: 0.8rem;">Pesan Lagi</button>
+            @if($order->status == 'menunggu_pembayaran')
+                <button type="button" disabled style="width: 60%; font-size: 1rem; padding: 0.8rem; background: #999; color: #eee; border: none; border-radius: 20px; font-weight: 700; cursor: not-allowed;">Pesan Lagi</button>
+            @else
+                <button type="submit" class="btn-oke" style="width: 60%; font-size: 1rem; padding: 0.8rem;">Pesan Lagi</button>
+            @endif
         </form>
 
+    </div>
+
+    <!-- Modal Pesanan Dihapus -->
+    <div id="deletedOrderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:2.5rem; border-radius:24px; text-align:center; width:90%; max-width:400px;">
+            <div style="width:80px; height:80px; border-radius:50%; border:4px solid #e74c3c; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+                <span style="font-size:3rem; font-weight:800; color:#e74c3c; font-family: sans-serif;">!</span>
+            </div>
+            <h3 style="font-size:1.5rem; font-weight:800; margin-bottom:0.5rem; color:#111;">Pesanan Dihapus</h3>
+            <p style="font-size:1rem; color:#555; margin-bottom:1.5rem;">Pesanan anda sudah dihapus, silakan lakukan pemesanan ulang.</p>
+            <form action="{{ route('receipt.reset') }}" method="POST">
+                @csrf
+                <button type="submit" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; width:100%;">Pesan Ulang</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Payment Required -->
+    <div id="paymentRequiredModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:2.5rem; border-radius:24px; text-align:center; width:90%; max-width:400px;">
+            <div style="width:80px; height:80px; border-radius:50%; border:4px solid #f39c12; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+                <span style="font-size:3rem; font-weight:800; color:#f39c12; font-family: sans-serif;">!</span>
+            </div>
+            <h3 style="font-size:1.5rem; font-weight:800; margin-bottom:0.5rem; color:#111;">Peringatan</h3>
+            <p style="font-size:1rem; color:#555; margin-bottom:1.5rem;">Lakukan Pembayaran terlebih dahulu.</p>
+            <button onclick="document.getElementById('paymentRequiredModal').style.display='none'" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 2rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1.1rem; width:100%;">Mengerti</button>
+        </div>
+    </div>
+
+    <!-- Modal Reorder Confirm -->
+    <div id="reorderConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:2.5rem; border-radius:24px; text-align:center; width:90%; max-width:400px;">
+            <div style="width:80px; height:80px; border-radius:50%; border:4px solid #3358d4; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">
+                <span style="font-size:3rem; font-weight:800; color:#3358d4; font-family: sans-serif;">?</span>
+            </div>
+            <h3 style="font-size:1.5rem; font-weight:800; margin-bottom:0.5rem; color:#111;">Pesan Lagi?</h3>
+            <p style="font-size:1rem; color:#555; margin-bottom:1.5rem;">Apakah anda ingin melakukan pemesanan lagi?</p>
+            <div style="display:flex; gap: 1rem;">
+                <button onclick="document.getElementById('resetForm').submit()" style="background:#3358d4; color:#fff; border:none; padding:0.8rem 1rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1rem; flex:1;">Ya, Pesan</button>
+                <button onclick="document.getElementById('reorderConfirmModal').style.display='none'" style="background:#fff; color:#555; border:1px solid #999; padding:0.8rem 1rem; border-radius:30px; font-weight:700; cursor:pointer; font-size:1rem; flex:1;">Batal</button>
+            </div>
+        </div>
     </div>
 
     <!-- html2pdf library -->
@@ -190,17 +256,43 @@
 
         // Auto refresh checking
         let currentStatus = "{{ $order->status }}";
+        let allowReload = false;
         
         setInterval(() => {
             fetch("{{ route('api.order.status', $order->id) }}")
-                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 404) {
+                        document.getElementById('deletedOrderModal').style.display = 'flex';
+                        throw new Error("Order deleted");
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.status && data.status !== currentStatus) {
+                        allowReload = true;
                         window.location.reload();
                     }
                 })
-                .catch(err => console.log('Error checking status:', err));
+                .catch(err => console.log('Checking status:', err));
         }, 5000); // check every 5 seconds
+
+        // Navigation Interception (Back Button & URL Change)
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function(event) {
+            history.pushState(null, null, location.href);
+            if (currentStatus === 'menunggu_pembayaran') {
+                document.getElementById('paymentRequiredModal').style.display = 'flex';
+            } else if (currentStatus === 'diproses' || currentStatus === 'selesai') {
+                document.getElementById('reorderConfirmModal').style.display = 'flex';
+            }
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (!allowReload && currentStatus === 'menunggu_pembayaran') {
+                e.preventDefault();
+                e.returnValue = ''; // Triggers native browser warning
+            }
+        });
     </script>
 </body>
 </html>

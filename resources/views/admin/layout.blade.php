@@ -243,10 +243,20 @@
                 
                 const rows = table.querySelectorAll('tbody tr');
                 let visibleCount = 0;
+                let dataRowCount = 0;
+                let originalEmptyRow = null;
                 
                 rows.forEach(row => {
                     const firstCell = row.querySelector('td');
-                    if (firstCell && firstCell.hasAttribute('colspan')) return;
+                    if (row.classList.contains('empty-search-row')) return;
+                    
+                    // Skip 'Belum ada pesanan masuk' rows and empty search rows
+                    if (firstCell && firstCell.hasAttribute('colspan')) {
+                        originalEmptyRow = row;
+                        return;
+                    }
+                    
+                    dataRowCount++;
                     
                     const text = row.textContent.toLowerCase();
                     if (text.includes(searchTerm)) {
@@ -257,20 +267,35 @@
                     }
                 });
                 
-                let emptyRow = table.querySelector('tbody .empty-search-row');
-                if (visibleCount === 0 && rows.length > 0) {
-                    if (!emptyRow) {
-                        const tbody = table.querySelector('tbody');
-                        const colCount = table.querySelector('thead tr').children.length;
-                        emptyRow = document.createElement('tr');
-                        emptyRow.className = 'empty-search-row';
-                        emptyRow.innerHTML = `<td colspan="${colCount}" style="text-align:center; padding:2rem;">Data tidak ditemukan</td>`;
-                        tbody.appendChild(emptyRow);
-                    } else {
-                        emptyRow.style.display = '';
+                let searchEmptyRow = table.querySelector('tbody .empty-search-row');
+                
+                if (searchTerm !== '') {
+                    // If searching, hide the default 'Belum ada pesanan'
+                    if (originalEmptyRow) originalEmptyRow.style.display = 'none';
+                    
+                    if (visibleCount === 0 || dataRowCount === 0) {
+                        if (!searchEmptyRow) {
+                            const tbody = table.querySelector('tbody');
+                            const colCount = table.querySelector('thead tr').children.length;
+                            searchEmptyRow = document.createElement('tr');
+                            searchEmptyRow.className = 'empty-search-row';
+                            searchEmptyRow.innerHTML = `<td colspan="${colCount}" style="text-align:center; padding:2rem;">Data tidak ditemukan</td>`;
+                            tbody.appendChild(searchEmptyRow);
+                        } else {
+                            searchEmptyRow.style.display = '';
+                        }
+                    } else if (searchEmptyRow) {
+                        searchEmptyRow.style.display = 'none';
                     }
-                } else if (emptyRow) {
-                    emptyRow.style.display = 'none';
+                } else {
+                    // Not searching, restore original states
+                    if (searchEmptyRow) searchEmptyRow.style.display = 'none';
+                    
+                    if (dataRowCount === 0) {
+                        if (originalEmptyRow) originalEmptyRow.style.display = '';
+                    } else {
+                        if (originalEmptyRow) originalEmptyRow.style.display = 'none';
+                    }
                 }
             }
         });

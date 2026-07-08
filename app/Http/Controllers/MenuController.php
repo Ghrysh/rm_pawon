@@ -183,6 +183,9 @@ class MenuController extends Controller
 
     public function orderStatus($id)
     {
+        // Clean up any expired orders before checking
+        \App\Models\Order::cleanExpired();
+
         $order = \App\Models\Order::find($id);
         if ($order) {
             return response()->json(['status' => $order->status]);

@@ -12,6 +12,7 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
+        Order::cleanExpired();
         $pesananMasukCount = Order::where('status', 'menunggu_pembayaran')->count();
         $pesananDiprosesCount = Order::where('status', 'diproses')->count();
         $riwayatTransaksiCount = Order::where('status', 'selesai')->count();
@@ -64,6 +65,7 @@ class AdminController extends Controller
 
     public function pesananMasuk()
     {
+        Order::cleanExpired();
         $orders = Order::with('items.menu')->where('status', 'menunggu_pembayaran')->orderBy('created_at', 'desc')->get();
         return view('admin.pesanan-masuk', compact('orders'));
     }
@@ -287,6 +289,7 @@ class AdminController extends Controller
     public function riwayat()
     {
         $orders = Order::with('items.menu')->where('status', 'selesai')->orderBy('created_at', 'desc')->get();
-        return view('admin.riwayat', compact('orders'));
+        $totalPendapatan = $orders->sum('total_harga');
+        return view('admin.riwayat', compact('orders', 'totalPendapatan'));
     }
 }

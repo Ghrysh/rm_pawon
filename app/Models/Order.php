@@ -12,4 +12,13 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public static function cleanExpired()
+    {
+        // Delete "menunggu_pembayaran" orders that are older than 40 minutes
+        $expiredTime = now()->subMinutes(40);
+        self::where('status', 'menunggu_pembayaran')
+            ->where('created_at', '<', $expiredTime)
+            ->delete();
+    }
 }

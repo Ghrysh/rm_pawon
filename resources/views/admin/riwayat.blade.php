@@ -10,7 +10,7 @@
 </div>
 
 <div class="table-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
         <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
             <div style="display:flex; gap:0.5rem; background:#f0f2f5; padding:0.4rem; border-radius:10px;">
                 <button type="button" class="filter-tab active" data-value="semua" onclick="setFilterType(this)">Semua</button>
@@ -43,7 +43,7 @@
             </div>
         </div>
         <div>
-            <input type="text" class="search-input-table" id="searchInput" placeholder="Cari Pesanan" style="padding:0.8rem 1rem; border-radius:8px; border:1px solid #ccc; font-weight:600; outline:none; width: 250px;">
+            <input type="text" class="search-input-table" id="searchInput" placeholder="Cari Pesanan">
         </div>
     </div>
 
@@ -98,6 +98,10 @@
                 @endif
             </tbody>
         </table>
+        
+        <div style="display: flex; justify-content: flex-end; padding: 1.5rem 1rem 0.5rem 1rem;">
+            <h3 style="margin: 0; color: #111; font-weight: 800; font-size: 1.2rem;">Total Pendapatan: <span id="totalPendapatan" style="color: #28a745; margin-left: 0.5rem;">Rp. {{ number_format($totalPendapatan, 0, ',', '.') }}</span></h3>
+        </div>
     </div>
 </div>
 
@@ -212,6 +216,7 @@
         const table = document.getElementById('riwayatTable');
         const rows = table.querySelectorAll('tbody tr.data-row');
         let visibleCount = 0;
+        let totalPendapatan = 0;
 
         rows.forEach(row => {
             const noMeja = row.querySelector('.col-meja').innerText.trim().toLowerCase();
@@ -236,10 +241,17 @@
             if (showType && showDate && showSearch) {
                 row.style.display = '';
                 visibleCount++;
+                const totalHargaStr = row.cells[5].innerText.replace(/[^0-9]/g, '');
+                totalPendapatan += parseInt(totalHargaStr) || 0;
             } else {
                 row.style.display = 'none';
             }
         });
+
+        const totalPendapatanEl = document.getElementById('totalPendapatan');
+        if (totalPendapatanEl) {
+            totalPendapatanEl.innerText = 'Rp. ' + totalPendapatan.toLocaleString('id-ID');
+        }
 
         const emptyRow = document.getElementById('emptyRow');
         if (emptyRow) {
@@ -253,6 +265,7 @@
         
         var wsData = [];
         var rows = table.querySelectorAll('tr');
+        let grandTotal = 0;
         
         for (var i = 0; i < rows.length; i++) {
             if (rows[i].style.display === 'none') continue; // Skip hidden rows from filter
@@ -265,7 +278,23 @@
             for (var j = 0; j < cols.length - 1; j++) {
                 row.push(cols[j].innerText.trim().replace(/\n/g, ' '));
             }
+
+            if (i > 0 && cols.length > 5) {
+                const totalHargaStr = cols[5].innerText.replace(/[^0-9]/g, '');
+                grandTotal += parseInt(totalHargaStr) || 0;
+            }
+
             wsData.push(row);
+        }
+
+        if (wsData.length > 0) {
+            wsData[0].push("Total Pendapatan");
+        }
+        if (wsData.length > 1) {
+            wsData[1].push("Rp. " + grandTotal.toLocaleString('id-ID'));
+        }
+        for (let i = 2; i < wsData.length; i++) {
+            wsData[i].push("");
         }
 
         var ws = XLSX.utils.aoa_to_sheet(wsData);
