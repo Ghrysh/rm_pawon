@@ -130,7 +130,6 @@
         function downloadPDF() {
             const element = document.getElementById('receipt-card');
             
-            // Temporary hide box-shadow and radius for the PDF generation so it looks like plain paper
             const originalShadow = element.style.boxShadow;
             const originalRadius = element.style.borderRadius;
             const originalBg = element.style.background;
@@ -139,8 +138,6 @@
             element.style.borderRadius = '0';
             element.style.background = '#ffffff';
 
-            // Calculate dynamic height based on the content (1px = 0.264583mm approx)
-            // We use Math.max to ensure a minimum height of 250mm, and add 20mm padding for safety
             const elementHeightMm = element.offsetHeight * 0.264583;
             const pdfHeight = Math.max(250, elementHeightMm + 20);
 
@@ -157,9 +154,7 @@
                 jsPDF:        { unit: 'mm', format: [80, pdfHeight], orientation: 'portrait' }
             };
 
-            // New Promise-based usage:
             html2pdf().set(opt).from(element).save().then(() => {
-                // Restore styles
                 element.style.boxShadow = originalShadow;
                 element.style.borderRadius = originalRadius;
                 element.style.background = originalBg;
@@ -167,9 +162,8 @@
         }
 
         @if($order->status == 'menunggu_pembayaran')
-        // Set order time from PHP using unix timestamp to avoid timezone issues
         const orderTime = {{ $order->created_at->timestamp * 1000 }};
-        const maxTime = 40 * 60 * 1000; // 40 minutes in ms
+        const maxTime = 40 * 60 * 1000;
 
         function updateTimer() {
             const now = new Date().getTime();
@@ -178,8 +172,7 @@
 
             if (remaining <= 0) {
                 document.getElementById('timerDisplay').innerText = "00:00";
-                // Session expired, redirect to reset session and name
-                window.location.href = "{{ route('start.reset') }}"; // We need to create this route
+                window.location.href = "{{ route('start.reset') }}";
                 return;
             }
 

@@ -148,7 +148,14 @@
             // Pause refresh on create/edit form pages
             const isFormPage = window.location.pathname.includes('/create') || window.location.pathname.includes('/edit');
 
-            if (!isModalOpen && !isSearching && !isFormPage) {
+            // Pause refresh if inline category forms are open
+            let isInlineFormOpen = false;
+            const tambahKategori = document.getElementById('tambahKategoriView');
+            if (tambahKategori && tambahKategori.style.display !== 'none') isInlineFormOpen = true;
+            const editKategori = document.getElementById('editKategoriView');
+            if (editKategori && editKategori.style.display !== 'none') isInlineFormOpen = true;
+
+            if (!isModalOpen && !isSearching && !isFormPage && !isInlineFormOpen) {
                 // Save state
                 const searchVals = Array.from(document.querySelectorAll('.search-input-table')).map(i => i.value);
                 const filterDateEl = document.getElementById('filterDate');
