@@ -302,5 +302,19 @@
 
         XLSX.writeFile(wb, "riwayat_transaksi_pawon.xlsx");
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        let mm = today.getMonth() + 1;
+        let dd = today.getDate();
+        
+        if (mm < 10) mm = '0' + mm;
+        if (dd < 10) dd = '0' + dd;
+        
+        const dateString = yyyy + '-' + mm + '-' + dd;
+        document.getElementById('filterDate').value = dateString;
+        filterRiwayat();
+    });
 </script>
 @endsection

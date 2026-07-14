@@ -15,7 +15,9 @@ class AdminController extends Controller
         Order::cleanExpired();
         $pesananMasukCount = Order::where('status', 'menunggu_pembayaran')->count();
         $pesananDiprosesCount = Order::where('status', 'diproses')->count();
-        $riwayatTransaksiCount = Order::where('status', 'selesai')->count();
+        $riwayatTransaksiCount = Order::where('status', 'selesai')
+                                      ->whereDate('created_at', \Carbon\Carbon::today())
+                                      ->count();
         $totalPendapatan = Order::where('status', 'selesai')
                                 ->whereDate('created_at', \Carbon\Carbon::today())
                                 ->sum('total_harga');
