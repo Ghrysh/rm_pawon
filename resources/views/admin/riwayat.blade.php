@@ -14,8 +14,8 @@
         <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
             <div style="display:flex; gap:0.5rem; background:#f0f2f5; padding:0.4rem; border-radius:10px;">
                 <button type="button" class="filter-tab active" data-value="semua" onclick="setFilterType(this)">Semua</button>
-                <button type="button" class="filter-tab" data-value="dine-in" onclick="setFilterType(this)">Dine In</button>
-                <button type="button" class="filter-tab" data-value="take-away" onclick="setFilterType(this)">Take Away</button>
+                <button type="button" class="filter-tab" data-value="dine-in" onclick="setFilterType(this)">Ditempat</button>
+                <button type="button" class="filter-tab" data-value="take-away" onclick="setFilterType(this)">Dibungkus</button>
             </div>
             <input type="hidden" id="filterType" value="semua">
             
@@ -37,9 +37,11 @@
             }
             </style>
             <div style="display:flex; align-items:center; gap:0.5rem; background:#fff; border:1px solid #ccc; border-radius:8px; padding:0 1rem;">
-                <label for="filterDate" style="font-weight:700; color:#555;">Tanggal:</label>
-                <input type="date" id="filterDate" style="padding:0.8rem 0.5rem; border:none; font-weight:600; outline:none; background:transparent;" onchange="filterRiwayat()">
-                <button type="button" onclick="document.getElementById('filterDate').value=''; filterRiwayat();" style="background:none; border:none; color:#999; cursor:pointer; font-weight:700;">&times;</button>
+                <label for="filterDateStart" style="font-weight:700; color:#555;">Dari:</label>
+                <input type="date" id="filterDateStart" style="padding:0.8rem 0.5rem; border:none; font-weight:600; outline:none; background:transparent;" onchange="filterRiwayat()">
+                <label for="filterDateEnd" style="font-weight:700; color:#555; border-left:1px solid #ccc; padding-left:0.5rem;">Sampai:</label>
+                <input type="date" id="filterDateEnd" style="padding:0.8rem 0.5rem; border:none; font-weight:600; outline:none; background:transparent;" onchange="filterRiwayat()">
+                <button type="button" onclick="document.getElementById('filterDateStart').value=''; document.getElementById('filterDateEnd').value=''; filterRiwayat();" style="background:none; border:none; color:#999; cursor:pointer; font-weight:700;">&times;</button>
             </div>
         </div>
         <div>
@@ -99,7 +101,11 @@
             </tbody>
         </table>
         
-        <div style="display: flex; justify-content: flex-end; padding: 1.5rem 1rem 0.5rem 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+            <button type="button" onclick="confirmClearRiwayat()" style="background: #e74c3c; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Bersihkan Riwayat
+            </button>
             <h3 style="margin: 0; color: #111; font-weight: 800; font-size: 1.2rem;">Total Pendapatan: <span id="totalPendapatan" style="color: #28a745; margin-left: 0.5rem;">Rp. {{ number_format($totalPendapatan, 0, ',', '.') }}</span></h3>
         </div>
     </div>
@@ -176,8 +182,32 @@
     </div>
 </div>
 
+<!-- Modal Konfirmasi Clear Riwayat -->
+<div id="confirmClearModal" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div class="admin-modal confirm-modal-box" style="background:#fff; padding:2.5rem 2rem; border-radius:12px; text-align:center; width:90%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <div class="confirm-icon icon-warn" style="width:80px; height:80px; border-radius:50%; border:2px solid #e74c3c; display:flex; justify-content:center; align-items:center; font-size:3rem; font-weight:700; color:#e74c3c; margin:0 auto 1.5rem;">!</div>
+        <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:1rem; color:#111;">Yakin Ingin Bersihkan Riwayat?</h3>
+        <p style="font-size:0.9rem; color:#555; margin-bottom:2rem;">Tindakan ini akan menghapus permanen data riwayat transaksi berdasarkan filter tanggal yang sedang dipilih.</p>
+        <div class="confirm-actions" style="display:flex; justify-content:center; gap:1rem;">
+            <form action="{{ route('admin.riwayat.clear') }}" method="POST">
+                @csrf
+                <input type="hidden" name="date_start" id="clearDateStart">
+                <input type="hidden" name="date_end" id="clearDateEnd">
+                <button type="submit" class="btn-edit-simpan" style="background:#e74c3c; color:#fff; border:none; padding:0.6rem 2.5rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:1rem;">Yakin</button>
+            </form>
+            <button style="background:#fff; color:#111; border:1px solid #777; padding:0.6rem 2.5rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:1rem;" onclick="closeModal('confirmClearModal')">Batal</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+    function confirmClearRiwayat() {
+        document.getElementById('clearDateStart').value = document.getElementById('filterDateStart').value;
+        document.getElementById('clearDateEnd').value = document.getElementById('filterDateEnd').value;
+        openModal('confirmClearModal');
+    }
+
     function openModal(id) {
         document.getElementById(id).style.display = 'flex';
     }
@@ -201,18 +231,10 @@
 
     function filterRiwayat() {
         const type = document.getElementById('filterType').value;
-        const dateRaw = document.getElementById('filterDate').value;
+        const dateRawStart = document.getElementById('filterDateStart').value;
+        const dateRawEnd = document.getElementById('filterDateEnd').value;
         const search = document.getElementById('searchInput').value.toLowerCase();
         
-        // Format date from YYYY-MM-DD to DD-MM-YYYY to match table format "H.i.s-d-m-Y"
-        let dateFormatted = "";
-        if (dateRaw) {
-            const parts = dateRaw.split('-');
-            if (parts.length === 3) {
-                dateFormatted = parts[2] + '-' + parts[1] + '-' + parts[0];
-            }
-        }
-
         const table = document.getElementById('riwayatTable');
         const rows = table.querySelectorAll('tbody tr.data-row');
         let visibleCount = 0;
@@ -224,13 +246,26 @@
             const textContent = row.innerText.toLowerCase();
             
             let showType = true;
-            if (type === 'dine-in') showType = noMeja !== 'take away';
-            if (type === 'take-away') showType = noMeja === 'take away';
+            if (type === 'dine-in') showType = noMeja !== 'dibungkus' && noMeja !== 'take away';
+            if (type === 'take-away') showType = noMeja === 'dibungkus' || noMeja === 'take away';
 
             let showDate = true;
-            if (dateFormatted) {
-                // dateStr format is H.i.s-d-m-Y e.g. 15.30.00-04-07-2026
-                showDate = dateStr.includes(dateFormatted);
+            const dateParts = dateStr.split('-');
+            if (dateParts.length === 4) {
+                // format dateStr: 15.30.00-04-07-2026 -> Time-DD-MM-YYYY
+                // Parse it as Date: 2026-07-04T00:00:00 for simple day comparison
+                const itemDateStr = dateParts[3] + '-' + dateParts[2] + '-' + dateParts[1] + 'T00:00:00';
+                const itemDate = new Date(itemDateStr);
+
+                if (dateRawStart) {
+                    const startDate = new Date(dateRawStart + 'T00:00:00');
+                    if (itemDate < startDate) showDate = false;
+                }
+                
+                if (dateRawEnd) {
+                    const endDate = new Date(dateRawEnd + 'T00:00:00');
+                    if (itemDate > endDate) showDate = false;
+                }
             }
 
             let showSearch = true;
@@ -313,7 +348,8 @@
         if (dd < 10) dd = '0' + dd;
         
         const dateString = yyyy + '-' + mm + '-' + dd;
-        document.getElementById('filterDate').value = dateString;
+        document.getElementById('filterDateStart').value = dateString;
+        document.getElementById('filterDateEnd').value = dateString;
         filterRiwayat();
     });
 </script>

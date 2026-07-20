@@ -14,9 +14,12 @@ Route::get('/api/menu/search', [MenuController::class, 'search'])->name('menu.se
 Route::get('/menu/{id}', [MenuController::class, 'show'])->name('menu.show');
 Route::post('/cart/add', [MenuController::class, 'addToCart'])->name('cart.add');
 Route::get('/cart', [MenuController::class, 'cart'])->name('cart.index');
+Route::delete('/cart/remove/{id}', [MenuController::class, 'removeCartItem'])->name('cart.remove');
 Route::post('/cart/checkout', [MenuController::class, 'checkout'])->name('cart.checkout');
 Route::get('/receipt', [MenuController::class, 'receipt'])->name('receipt');
 Route::post('/receipt/reset', [MenuController::class, 'reset'])->name('receipt.reset');
+Route::post('/receipt/reorder', [MenuController::class, 'reorder'])->name('receipt.reorder');
+Route::post('/receipt/add-time', [MenuController::class, 'addTime'])->name('receipt.addTime');
 Route::get('/start/reset', [MenuController::class, 'fullReset'])->name('start.reset');
 Route::get('/api/order/{id}/status', [MenuController::class, 'orderStatus'])->name('api.order.status');
 
@@ -49,4 +52,5 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/kategori/{id}', [AdminController::class, 'updateKategori'])->name('kategori.update');
     Route::delete('/kategori/{id}', [AdminController::class, 'destroyKategori'])->name('kategori.destroy');
     Route::get('/riwayat', [AdminController::class, 'riwayat'])->name('riwayat');
+    Route::post('/riwayat/clear', [AdminController::class, 'clearRiwayat'])->name('riwayat.clear');
 });

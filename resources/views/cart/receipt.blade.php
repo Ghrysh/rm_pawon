@@ -12,12 +12,29 @@
     <div class="mobile-container" style="padding: 3rem 1.5rem 2rem 1.5rem; justify-content: center; min-height: 100vh;">
         
         <h1 style="text-align: center; font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; color: #fff;">Pesanan Anda</h1>
-        @if($order->status == 'menunggu_pembayaran')
-        <div id="countdown-timer" style="text-align: center; margin-bottom: 1.5rem;">
-            <div style="font-size: 1.1rem; font-weight: 700; color: #ffeb3b;">Batas Waktu Pembayaran</div>
-            <div style="font-size: 1.8rem; font-weight: 800; margin: 0.3rem 0; color: #ffeb3b;"><span id="timerDisplay">--:--</span></div>
-            <div style="font-size: 0.9rem; font-weight: 600; color: #ffffff;">Segera lakukan pembayaran ke kasir</div>
-        </div>
+        @if($order->status == 'menunggu_pembayaran' || $order->status == 'kadaluwarsa')
+            @if($order->status == 'menunggu_pembayaran')
+            <div id="countdown-timer" style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="font-size: 1.1rem; font-weight: 700; color: #ffeb3b;">Batas Waktu Pembayaran</div>
+                <div style="font-size: 1.8rem; font-weight: 800; margin: 0.3rem 0; color: #ffeb3b;"><span id="timerDisplay">--:--</span></div>
+                <div style="font-size: 0.9rem; font-weight: 600; color: #ffffff;">Segera lakukan pembayaran ke kasir</div>
+            </div>
+            @endif
+
+            <div id="expiredNotification" style="display: {{ $order->status == 'kadaluwarsa' ? 'block' : 'none' }}; text-align: center; margin-bottom: 1.5rem;">
+                <div style="font-size: 1.1rem; font-weight: 700; color: #ffeb3b; margin-bottom: 0.5rem;">Pesanan belum di proses.</div>
+                <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-bottom: 1rem;">Silahkan tambah waktu atau pesan ulang.</div>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <form action="{{ route('receipt.reorder') }}" method="POST" style="flex:1;">
+                        @csrf
+                        <button type="submit" style="width: 100%; font-size: 0.95rem; padding: 0.8rem; background: #3358d4; color: #fff; border: none; border-radius: 20px; font-weight: 700; cursor: pointer;">Pesan Ulang</button>
+                    </form>
+                    <form action="{{ route('receipt.addTime') }}" method="POST" style="flex:1;">
+                        @csrf
+                        <button type="submit" style="width: 100%; font-size: 0.95rem; padding: 0.8rem; background: #28a745; color: #fff; border: none; border-radius: 20px; font-weight: 700; cursor: pointer;">Tambah Waktu +{{ \App\Models\Order::EXPIRATION_MINUTES }}</button>
+                    </form>
+                </div>
+            </div>
         @elseif($order->status == 'diproses')
         <div style="text-align: center; color: #4caf50; margin-bottom: 1.5rem;">
             <div style="font-size: 1.3rem; font-weight: 800;">Pembayaran Berhasil</div>
@@ -52,7 +69,7 @@
                 <tr>
                     <td style="padding-bottom: 0.3rem;">Status</td>
                     <td style="padding-bottom: 0.3rem; text-align: right; color: #777;">
-                        {{ $order->status == 'menunggu_pembayaran' ? 'Menunggu Pembayaran' : ($order->status == 'diproses' ? 'Di Proses' : 'Selesai') }}
+                        {{ $order->status == 'menunggu_pembayaran' ? 'Menunggu Pembayaran' : ($order->status == 'diproses' ? 'Di Proses' : ($order->status == 'kadaluwarsa' ? 'Kadaluwarsa' : 'Selesai')) }}
                     </td>
                 </tr>
             </table>
@@ -123,7 +140,7 @@
             <p style="font-size: 0.8rem; color: #fff; text-align: left; flex: 1; margin: 0;">
                 Jika status belum berubah otomatis, mohon untuk refresh halaman.
             </p>
-            @if($order->status == 'menunggu_pembayaran')
+            @if($order->status == 'menunggu_pembayaran' || $order->status == 'kadaluwarsa')
             <button disabled style="background: #999; color: #ccc; border: none; padding: 0.6rem 1rem; border-radius: 8px; font-weight: 700; cursor: not-allowed; display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
                 <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 PDF
@@ -138,7 +155,7 @@
 
         <form id="resetForm" action="{{ route('receipt.reset') }}" method="POST" style="margin-top: 2rem; text-align: center;">
             @csrf
-            @if($order->status == 'menunggu_pembayaran')
+            @if($order->status == 'menunggu_pembayaran' || $order->status == 'kadaluwarsa')
                 <button type="button" disabled style="width: 60%; font-size: 1rem; padding: 0.8rem; background: #999; color: #eee; border: none; border-radius: 20px; font-weight: 700; cursor: not-allowed;">Pesan Lagi</button>
             @else
                 <button type="submit" class="btn-oke" style="width: 60%; font-size: 1rem; padding: 0.8rem;">Pesan Lagi</button>
@@ -229,7 +246,7 @@
 
         @if($order->status == 'menunggu_pembayaran')
         const orderTime = {{ $order->created_at->timestamp * 1000 }};
-        const maxTime = 40 * 60 * 1000;
+        const maxTime = {{ \App\Models\Order::EXPIRATION_MINUTES }} * 60 * 1000;
 
         function updateTimer() {
             const now = new Date().getTime();
@@ -238,7 +255,8 @@
 
             if (remaining <= 0) {
                 document.getElementById('timerDisplay').innerText = "00:00";
-                window.location.href = "{{ route('start.reset') }}";
+                document.getElementById('countdown-timer').style.display = 'none';
+                document.getElementById('expiredNotification').style.display = 'block';
                 return;
             }
 
@@ -292,6 +310,13 @@
                 e.preventDefault();
                 e.returnValue = ''; // Triggers native browser warning
             }
+        });
+
+        // Allow forms to submit without triggering the beforeunload warning
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', () => {
+                allowReload = true;
+            });
         });
     </script>
 </body>

@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 </head>
 <body>
-    <div class="mobile-container welcome-container">
+    <div class="mobile-container welcome-container" style="display: flex; flex-direction: column; justify-content: flex-start; padding-top: 5rem; align-items: center;">
         
-        <div class="logo-container">
+        <div class="logo-container" style="margin-bottom: 1.5rem;">
             <img src="{{ asset('assets/logo_rm.png') }}" alt="Logo Pawon Kang Bima">
         </div>
 

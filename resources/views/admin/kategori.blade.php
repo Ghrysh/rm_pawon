@@ -6,7 +6,7 @@
 <div id="kategoriTableView">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
         <h1 class="page-title" style="margin-bottom:0;">Kategori Menu</h1>
-        <button class="btn-tambah-menu" onclick="showView('tambahKategoriView')">+ Tambah Kategori</button>
+        <button class="btn-tambah-menu" style="background-color:#285ba7;" onclick="showView('tambahKategoriView')">+ Tambah Kategori</button>
     </div>
 
     @if(session('success'))

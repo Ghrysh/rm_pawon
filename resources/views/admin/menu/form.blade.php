@@ -9,6 +9,15 @@
 </h1>
 
 <div style="background:#fff; border-radius:12px; padding:2rem; box-shadow:0 4px 15px rgba(0,0,0,0.05); max-width: 900px;">
+    @if ($errors->any())
+        <div style="background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <ul style="margin: 0; padding-left: 1.5rem;">
+                @foreach ($errors->all() as $error)
+                    <li style="font-weight: 600;">{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <form id="menuForm" action="{{ $mode == 'edit' ? route('admin.menu.update', $menu->id) : route('admin.menu.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @if($mode == 'edit') @method('PUT') @endif

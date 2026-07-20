@@ -107,11 +107,30 @@ class MenuController extends Controller
         }
         $cart = session('cart', []);
         
+        if (empty($cart)) {
+            return redirect()->route('menu.index')->with('success', 'Keranjang Anda kosong, silahkan pilih menu.');
+        }
+        
         $bookedTables = \App\Models\Order::whereIn('status', ['menunggu_pembayaran', 'diproses'])
                                          ->pluck('no_meja')
                                          ->toArray();
                                          
         return view('cart.index', compact('cart', 'bookedTables'));
+    }
+
+    public function removeCartItem($id)
+    {
+        $cart = session('cart', []);
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
+            session(['cart' => $cart]);
+        }
+        
+        if (empty($cart)) {
+            return redirect()->route('menu.index')->with('success', 'Keranjang kosong, silahkan pilih menu.');
+        }
+
+        return redirect()->back()->with('success', 'Menu dihapus dari keranjang');
     }
 
     public function checkout(Request $request)
@@ -173,6 +192,50 @@ class MenuController extends Controller
     {
         session()->forget(['order_id']);
         return redirect()->route('menu.index');
+    }
+
+    public function addTime()
+    {
+        $orderId = session('order_id');
+        if ($orderId) {
+            $order = \App\Models\Order::find($orderId);
+            if ($order && in_array($order->status, ['menunggu_pembayaran', 'kadaluwarsa'])) {
+                $order->update([
+                    'created_at' => now(),
+                    'status' => 'menunggu_pembayaran' // Reset status to menunggu_pembayaran
+                ]);
+            }
+        }
+        return redirect()->route('receipt');
+    }
+
+    public function reorder()
+    {
+        $orderId = session('order_id');
+        if ($orderId) {
+            $order = \App\Models\Order::with('items')->find($orderId);
+            if ($order && in_array($order->status, ['menunggu_pembayaran', 'kadaluwarsa'])) {
+                $cart = session('cart', []);
+                foreach ($order->items as $item) {
+                    if (isset($cart[$item->menu_id])) {
+                        $cart[$item->menu_id]['qty'] += $item->qty;
+                    } else {
+                        $cart[$item->menu_id] = [
+                            'name' => $item->menu->name ?? 'Menu',
+                            'price' => $item->price,
+                            'qty' => $item->qty,
+                            'catatan' => $item->catatan,
+                            'image' => $item->menu->image ?? null
+                        ];
+                    }
+                }
+                session(['cart' => $cart]);
+                session()->forget(['order_id']);
+                $order->items()->delete();
+                $order->delete();
+            }
+        }
+        return redirect()->route('cart.index');
     }
 
     public function fullReset()

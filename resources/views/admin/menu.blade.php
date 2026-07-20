@@ -2,8 +2,8 @@
 
 @section('content')
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-    <h1 class="page-title" style="margin-bottom:0;">Daftar Menu</h1>
-    <a href="{{ route('admin.menu.create') }}" class="btn-tambah-menu" style="text-decoration:none;">+ Tambah Menu</a>
+    <h1 class="page-title" style="margin-bottom:0;">Kelola Menu</h1>
+    <a href="{{ route('admin.menu.create') }}" class="btn-tambah-menu" style="text-decoration:none; background-color:#285ba7;">+ Tambah Menu</a>
 </div>
 
 @if(session('success'))

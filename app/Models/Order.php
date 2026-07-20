@@ -8,6 +8,8 @@ class Order extends Model
 {
     protected $guarded = ['id'];
 
+    public const EXPIRATION_MINUTES = 15;
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);
@@ -15,10 +17,9 @@ class Order extends Model
 
     public static function cleanExpired()
     {
-        // Delete "menunggu_pembayaran" orders that are older than 40 minutes
-        $expiredTime = now()->subMinutes(40);
+        $expiredTime = now()->subMinutes(self::EXPIRATION_MINUTES);
         self::where('status', 'menunggu_pembayaran')
             ->where('created_at', '<', $expiredTime)
-            ->delete();
+            ->update(['status' => 'kadaluwarsa']);
     }
 }

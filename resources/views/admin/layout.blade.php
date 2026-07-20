@@ -159,8 +159,12 @@
                 // Save state
                 const searchVals = Array.from(document.querySelectorAll('.search-input-table')).map(i => i.value);
                 const filterDateEl = document.getElementById('filterDate');
+                const filterDateStartEl = document.getElementById('filterDateStart');
+                const filterDateEndEl = document.getElementById('filterDateEnd');
                 const filterTypeEl = document.getElementById('filterType');
                 const filterDateVal = filterDateEl ? filterDateEl.value : '';
+                const filterDateStartVal = filterDateStartEl ? filterDateStartEl.value : '';
+                const filterDateEndVal = filterDateEndEl ? filterDateEndEl.value : '';
                 const filterTypeVal = filterTypeEl ? filterTypeEl.value : '';
 
                 fetch(window.location.href, {
@@ -186,9 +190,13 @@
                         });
 
                         const newFilterDateEl = document.getElementById('filterDate');
+                        const newFilterDateStartEl = document.getElementById('filterDateStart');
+                        const newFilterDateEndEl = document.getElementById('filterDateEnd');
                         const newFilterTypeEl = document.getElementById('filterType');
                         
                         if (newFilterDateEl) newFilterDateEl.value = filterDateVal;
+                        if (newFilterDateStartEl) newFilterDateStartEl.value = filterDateStartVal;
+                        if (newFilterDateEndEl) newFilterDateEndEl.value = filterDateEndVal;
                         
                         if (newFilterTypeEl && filterTypeVal) {
                             newFilterTypeEl.value = filterTypeVal;

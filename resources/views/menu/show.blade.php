@@ -44,7 +44,7 @@
         <div class="detail-bottom">
             <div class="qty-control">
                 <button type="button" class="btn-qty" id="btnMinus">-</button>
-                <span class="qty-val" id="qtyDisplay">{{ $inCart ? $cartItem['qty'] : 1 }}</span>
+                <input type="number" class="qty-val" id="qtyDisplay" value="{{ $inCart ? $cartItem['qty'] : 1 }}" style="width: 50px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 0.2rem; font-size: 1.1rem; font-weight: 700;">
                 <button type="button" class="btn-qty" id="btnPlus">+</button>
             </div>
             <button type="button" class="btn-add-cart" id="btnSubmitForm">
@@ -70,7 +70,7 @@
         }
 
         function updateDisplay() {
-            qtyDisplay.innerText = qty;
+            qtyDisplay.value = qty;
             inputQty.value = qty;
             if (inCart) {
                 btnSubmitForm.innerText = 'Ubah';
@@ -78,6 +78,17 @@
                 btnSubmitForm.innerText = 'Tambah - ' + formatRupiah(basePrice * qty);
             }
         }
+
+        qtyDisplay.addEventListener('change', (e) => {
+            let val = parseInt(e.target.value);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > maxQty) {
+                val = maxQty;
+                alert('Maksimal stok untuk menu ini adalah ' + maxQty);
+            }
+            qty = val;
+            updateDisplay();
+        });
 
         const maxQty = {{ $menu->stok }};
 

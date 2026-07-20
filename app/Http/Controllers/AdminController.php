@@ -294,4 +294,24 @@ class AdminController extends Controller
         $totalPendapatan = $orders->sum('total_harga');
         return view('admin.riwayat', compact('orders', 'totalPendapatan'));
     }
+
+    public function clearRiwayat(Request $request)
+    {
+        $query = Order::where('status', 'selesai');
+
+        if ($request->filled('date_start')) {
+            $query->whereDate('created_at', '>=', $request->date_start);
+        }
+        if ($request->filled('date_end')) {
+            $query->whereDate('created_at', '<=', $request->date_end);
+        }
+
+        $orders = $query->get();
+        foreach ($orders as $order) {
+            $order->items()->delete();
+            $order->delete();
+        }
+
+        return redirect()->back()->with('success', 'Riwayat berhasil dibersihkan.');
+    }
 }

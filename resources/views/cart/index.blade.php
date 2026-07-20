@@ -39,7 +39,10 @@
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
                         <span style="font-weight: 700; font-size: 0.9rem; color: #000;">x{{ $item['qty'] }}</span>
-                        <a href="{{ route('menu.show', $id) }}" class="btn-order" style="width: auto; padding: 0.3rem 1.2rem;">Ubah</a>
+                        <div style="display:flex; gap:0.5rem;">
+                            <a href="{{ route('menu.show', $id) }}" class="btn-order" style="width: auto; padding: 0.3rem 1.2rem;">Ubah</a>
+                            <button type="button" onclick="confirmRemoveCartItem('{{ $id }}')" style="background-color:#e74c3c; color:#fff; border:none; border-radius:30px; font-weight:700; cursor:pointer; width:auto; padding: 0.3rem 0.8rem;">x</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -57,7 +60,7 @@
                 <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Nomor Meja</h4>
                 <select name="meja" id="mejaSelect" class="form-control" style="background: #fff; margin-bottom: 0.3rem; font-weight: 700;" required>
                     <option value="" disabled selected>Pilih Nomor Meja</option>
-                    <option value="Take Away">Take Away</option>
+                    <option value="Dibungkus">Dibungkus</option>
                     @for($i = 1; $i <= 10; $i++)
                         @php 
                             $mejaNum = str_pad($i, 2, '0', STR_PAD_LEFT); 
@@ -121,7 +124,31 @@
         </div>
     </div>
 
+    <div id="confirmRemoveItemModal" class="full-modal" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-icon icon-warn" style="font-size:3rem; font-weight:800; color:#555; width:80px; height:80px; border-radius:50%; border:4px solid #555; display:flex; justify-content:center; align-items:center; margin:0 auto 1rem;">!</div>
+            <h3>Yakin ingin menghapus pesanan ini?</h3>
+            <div class="modal-buttons" style="margin-top:2rem;">
+                <button type="button" class="btn-belum" onclick="closeModal('confirmRemoveItemModal')">Batal</button>
+                <form id="removeCartItemForm" method="POST" action="" style="flex: 1; margin: 0;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-sudah" style="width: 100%;">Ya, Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function confirmRemoveCartItem(id) {
+            document.getElementById('removeCartItemForm').action = '{{ url("cart/remove") }}/' + id;
+            document.getElementById('confirmRemoveItemModal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
         const btnPesanSekarang = document.getElementById('btnPesanSekarang');
         const mejaSelect = document.getElementById('mejaSelect');
         const mejaError = document.getElementById('mejaError');

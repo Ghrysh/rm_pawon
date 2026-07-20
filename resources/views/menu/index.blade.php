@@ -56,7 +56,7 @@
         <div class="modal-overlay" id="filterModal">
             <div class="modal-content" @if(session('cart') && count(session('cart')) > 0) style="margin-bottom: 160px;" @endif>
                 <div class="category-item active" data-id="">
-                    <span>Semua Kategori</span>
+                    <span>Semua Menu</span>
                     <span></span>
                 </div>
                 @foreach($categories as $category)
