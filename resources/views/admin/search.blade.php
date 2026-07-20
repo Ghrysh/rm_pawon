@@ -31,6 +31,8 @@
                             <span style="color:#bb1f21; font-weight:700;">Menunggu Pembayaran</span>
                         @elseif($order->status == 'diproses')
                             <span style="color:#1f9435; font-weight:700;">Di Proses</span>
+                        @elseif($order->status == 'kadaluwarsa')
+                            <span style="color:#999999; font-weight:700;">Kadaluwarsa</span>
                         @else
                             <span style="color:#3252b3; font-weight:700;">Selesai</span>
                         @endif
